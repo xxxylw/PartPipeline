@@ -1,0 +1,6 @@
+[submodule "third_party/SAMPart3D"]
+	path = third_party/SAMPart3D
+	url = https://github.com/xxxylw/SAMPart3D.git
+[submodule "third_party/HoloPart"]
+	path = third_party/HoloPart
+	url = https://github.com/xxxylw/HoloPart.git
