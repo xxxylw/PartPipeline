@@ -20,7 +20,7 @@
 
 ### Completion
 
-- [ ] **HOLO-01**: System can pass the prepared multipart GLB to HoloPart and collect `output.glb`.
+- [x] **HOLO-01**: System can pass the prepared multipart GLB to HoloPart and collect `output.glb`. Validated in Phase 6 with the real Phase 5 run.
 
 ### Outputs
 
@@ -57,7 +57,7 @@
 | BRIDGE-01 | Phase 4 |
 | BRIDGE-02 | Phase 5 |
 | HOLO-01 | Phase 6 |
-| OUT-01 | Phase 3, Phase 4, Phase 7 |
-| OUT-02 | Phase 7 |
+| OUT-01 | Phase 3, Phase 4, Phase 6, Phase 7 |
+| OUT-02 | Phase 6, Phase 7 |
 | ENV-01 | Phase 2 |
 | ENV-02 | Phase 2 |

@@ -218,6 +218,37 @@ class BridgeResult:
 
 
 @dataclass(frozen=True)
+class HoloPartPaths:
+    prepared_glb: Path
+    output_dir: Path
+    output_glb: Path
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "prepared_glb": str(self.prepared_glb),
+            "output_dir": str(self.output_dir),
+            "output_glb": str(self.output_glb),
+        }
+
+
+@dataclass(frozen=True)
+class HoloPartResult:
+    paths: HoloPartPaths
+    command: CommandResult
+
+    @property
+    def output_glb(self) -> Path:
+        return self.paths.output_glb
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "paths": self.paths.to_dict(),
+            "output_glb": str(self.paths.output_glb),
+            "command": self.command.to_dict(),
+        }
+
+
+@dataclass(frozen=True)
 class RunManifest:
     input_path: Path
     profile: str
@@ -231,6 +262,7 @@ class RunManifest:
     commands: list[CommandResult] = field(default_factory=list)
     sampart3d: Sampart3DResult | None = None
     bridge: BridgeResult | None = None
+    holopart: HoloPartResult | None = None
     error: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -250,6 +282,8 @@ class RunManifest:
             data["sampart3d"] = self.sampart3d.to_dict()
         if self.bridge is not None:
             data["bridge"] = self.bridge.to_dict()
+        if self.holopart is not None:
+            data["holopart"] = self.holopart.to_dict()
         if self.error is not None:
             data["error"] = self.error
         return data

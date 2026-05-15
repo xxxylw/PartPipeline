@@ -7,7 +7,8 @@ import typer
 
 from partpipeline.config import load_config, resolve_profile
 from partpipeline.bridge import BridgeConversionError
-from partpipeline.orchestrator import bridge_existing_run, prepare_single_run
+from partpipeline.orchestrator import bridge_existing_run, prepare_single_run, run_holopart_for_existing_run
+from partpipeline.runners.holopart import HoloPartExecutionError, HoloPartPreflightError
 from partpipeline.runners.sampart3d import Sampart3DExecutionError, Sampart3DPreflightError
 from partpipeline.types import RunRequest
 
@@ -64,6 +65,38 @@ def bridge(
     if manifest.bridge is not None:
         typer.echo(f"Prepared GLB: {manifest.bridge.prepared_glb}")
         typer.echo(f"Part manifest: {manifest.bridge.part_manifest}")
+    typer.echo(f"Manifest: {manifest.paths.manifest_path}")
+
+
+@app.command()
+def holopart(
+    run_dir: Path = typer.Argument(..., exists=True, file_okay=False, dir_okay=True),
+    config: Path = typer.Option(Path("configs/default.yaml"), "--config", "-c"),
+    profile: Optional[str] = typer.Option(None, "--profile", "-p"),
+    seed: Optional[int] = typer.Option(None, "--seed"),
+    num_inference_steps: Optional[int] = typer.Option(None, "--num-inference-steps"),
+    guidance_scale: Optional[float] = typer.Option(None, "--guidance-scale"),
+    batch_size: Optional[int] = typer.Option(None, "--batch-size"),
+) -> None:
+    """Run HoloPart for an existing bridge-complete run."""
+    try:
+        manifest = run_holopart_for_existing_run(
+            run_dir,
+            config,
+            profile,
+            seed=seed,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            batch_size=batch_size,
+        )
+    except (HoloPartPreflightError, HoloPartExecutionError, FileNotFoundError) as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from exc
+
+    typer.echo(f"Profile: {manifest.profile}")
+    typer.echo(f"Status: {manifest.status}")
+    if manifest.holopart is not None:
+        typer.echo(f"Output GLB: {manifest.holopart.output_glb}")
     typer.echo(f"Manifest: {manifest.paths.manifest_path}")
 
 

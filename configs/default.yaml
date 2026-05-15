@@ -27,6 +27,12 @@ profiles:
       repo: third_party/HoloPart
       env: holopart
       python: /home/rui/miniconda3/envs/holopart/bin/python
+      hf_endpoint: https://hf-mirror.com
+      weights_dir: pretrained_weights/HoloPart
+      seed: 42
+      num_inference_steps: 50
+      guidance_scale: 3.5
+      batch_size: 8
 
   server:
     project_root: /server/path/placeholder/PartPipeline
@@ -46,3 +52,9 @@ profiles:
       repo: third_party/HoloPart
       env: holopart
       python: /server/path/placeholder/miniconda3/envs/holopart/bin/python
+      hf_endpoint: https://hf-mirror.com
+      weights_dir: pretrained_weights/HoloPart
+      seed: 42
+      num_inference_steps: 50
+      guidance_scale: 3.5
+      batch_size: 8

@@ -12,7 +12,12 @@ from partpipeline.runners.sampart3d import (
     Sampart3DPreflightError,
     Sampart3DRunner,
 )
-from partpipeline.types import BridgeResult, CommandResult, RunManifest, RunPaths, RunRequest, RuntimeProfile
+from partpipeline.runners.holopart import (
+    HoloPartExecutionError,
+    HoloPartPreflightError,
+    HoloPartRunner,
+)
+from partpipeline.types import BridgeResult, CommandResult, HoloPartResult, RunManifest, RunPaths, RunRequest, RuntimeProfile
 
 
 def prepare_single_run(
@@ -184,6 +189,89 @@ def bridge_existing_run(
     data.setdefault("sampart3d", _fallback_sampart3d_record(paths, source_glb, source_mask, mask_scale))
     manifest_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return manifest
+
+
+def run_holopart_for_existing_run(
+    run_dir: Path,
+    config_path: Path,
+    profile_name: str | None = None,
+    holopart_runner: HoloPartRunner | None = None,
+    seed: int | None = None,
+    num_inference_steps: int | None = None,
+    guidance_scale: float | None = None,
+    batch_size: int | None = None,
+) -> RunManifest:
+    run_dir = run_dir.expanduser().resolve()
+    manifest_path = run_dir / "manifest.json"
+    if not manifest_path.exists():
+        raise FileNotFoundError(f"Run manifest does not exist: {manifest_path}")
+
+    data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    config = load_config(config_path)
+    profile = resolve_profile(config, profile_name or data.get("profile"))
+    mask_scale = str(data.get("mask_scale", config.default_mask_scale))
+    paths = _run_paths_from_manifest(run_dir, data)
+    runner = holopart_runner or HoloPartRunner()
+
+    try:
+        holopart_result = runner.run(
+            profile,
+            paths,
+            seed=seed,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            batch_size=batch_size,
+        )
+    except (HoloPartPreflightError, HoloPartExecutionError) as exc:
+        command = getattr(exc, "command", None)
+        data.update(
+            {
+                "status": "failed",
+                "updated_at": datetime.now().isoformat(timespec="seconds"),
+                "paths": paths.to_dict(),
+                "error": {
+                    "type": "holopart",
+                    "message": str(exc),
+                    "command": command.to_dict() if command is not None else None,
+                },
+            }
+        )
+        manifest_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        raise
+
+    updated_at = datetime.now().isoformat(timespec="seconds")
+    data.update(
+        {
+            "profile": profile.name,
+            "output_root": str(Path(data.get("output_root", paths.run_dir.parent)).expanduser().resolve()),
+            "run_dir": str(paths.run_dir),
+            "mask_scale": mask_scale,
+            "status": "holopart_complete",
+            "updated_at": updated_at,
+            "paths": paths.to_dict(),
+            "holopart": holopart_result.to_dict(),
+        }
+    )
+    existing_commands = data.get("commands")
+    if isinstance(existing_commands, list):
+        existing_commands.append(holopart_result.command.to_dict())
+    else:
+        data["commands"] = [holopart_result.command.to_dict()]
+    manifest_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    return RunManifest(
+        input_path=Path(data.get("input_path", holopart_result.paths.prepared_glb)).expanduser(),
+        profile=profile.name,
+        output_root=Path(data.get("output_root", paths.run_dir.parent)).expanduser().resolve(),
+        run_dir=paths.run_dir,
+        mask_scale=mask_scale,
+        status="holopart_complete",
+        created_at=str(data.get("created_at", datetime.now().isoformat(timespec="seconds"))),
+        updated_at=updated_at,
+        paths=paths,
+        commands=[holopart_result.command],
+        holopart=holopart_result,
+    )
 
 
 def _failure_manifest(

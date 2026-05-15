@@ -128,6 +128,49 @@ class CliTests(unittest.TestCase):
             self.assertIn("sampart3d", updated)
             self.assertIn("bridge", updated)
 
+    def test_holopart_command_fails_when_prepared_glb_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            run_dir = Path(temp_dir) / "run"
+            run_dir.mkdir()
+            (run_dir / "manifest.json").write_text(
+                json.dumps(
+                    {
+                        "input_path": "missing.glb",
+                        "profile": "local_wsl",
+                        "output_root": str(run_dir.parent),
+                        "run_dir": str(run_dir),
+                        "mask_scale": "1.0",
+                        "status": "bridge_complete",
+                        "created_at": "2026-05-15T12:00:00",
+                        "updated_at": "2026-05-15T12:00:00",
+                        "paths": {
+                            "run_dir": str(run_dir),
+                            "logs_dir": str(run_dir / "logs"),
+                            "sam_dir": str(run_dir / "sam"),
+                            "bridge_dir": str(run_dir / "bridge"),
+                            "prepared_dir": str(run_dir / "prepared"),
+                            "holopart_dir": str(run_dir / "holopart"),
+                            "manifest_path": str(run_dir / "manifest.json"),
+                        },
+                        "commands": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            result = CliRunner().invoke(
+                app,
+                [
+                    "holopart",
+                    str(run_dir),
+                    "--config",
+                    str(ROOT / "configs" / "default.yaml"),
+                ],
+            )
+
+            self.assertNotEqual(result.exit_code, 0)
+            self.assertIn("prepared_parts.glb", result.output)
+
 
 if __name__ == "__main__":
     unittest.main()

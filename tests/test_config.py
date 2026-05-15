@@ -28,6 +28,11 @@ class ConfigTests(unittest.TestCase):
         self.assertTrue(config.bridge.merge_small_parts)
         self.assertEqual(config.bridge.min_faces_per_part, 100)
         self.assertEqual(config.bridge.min_area_ratio, 0.001)
+        self.assertEqual(profile.holopart.settings["hf_endpoint"], "https://hf-mirror.com")
+        self.assertEqual(profile.holopart.settings["seed"], 42)
+        self.assertEqual(profile.holopart.settings["num_inference_steps"], 50)
+        self.assertEqual(profile.holopart.settings["guidance_scale"], 3.5)
+        self.assertEqual(profile.holopart.settings["batch_size"], 8)
 
     def test_server_profile_contains_known_ssh_identity(self) -> None:
         config = load_config(ROOT / "configs" / "default.yaml")

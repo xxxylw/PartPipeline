@@ -10,8 +10,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from partpipeline.orchestrator import prepare_single_run
-from partpipeline.types import BridgeResult, CommandResult, RunRequest, Sampart3DPaths, Sampart3DResult
+from partpipeline.orchestrator import prepare_single_run, run_holopart_for_existing_run
+from partpipeline.types import (
+    BridgeResult,
+    CommandResult,
+    HoloPartPaths,
+    HoloPartResult,
+    RunRequest,
+    Sampart3DPaths,
+    Sampart3DResult,
+)
 
 
 class OrchestratorTests(unittest.TestCase):
@@ -107,6 +115,74 @@ class OrchestratorTests(unittest.TestCase):
             self.assertEqual(saved["sampart3d"]["copied_selected_mask"], str(manifest.paths.sam_dir / "mesh_1.0.npy"))
             self.assertEqual(saved["bridge"]["prepared_glb"], str(manifest.paths.bridge_dir / "prepared_parts.glb"))
             self.assertEqual(saved["commands"][0]["exit_code"], 0)
+
+    def test_run_holopart_for_existing_run_preserves_manifest_sections(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            run_dir = root / "demo-20260515-120000"
+            bridge_dir = run_dir / "bridge"
+            holopart_dir = run_dir / "holopart"
+            logs_dir = run_dir / "logs"
+            for directory in (bridge_dir, holopart_dir, logs_dir):
+                directory.mkdir(parents=True)
+            prepared = bridge_dir / "prepared_parts.glb"
+            prepared.write_bytes(b"glb")
+            manifest_data = {
+                "input_path": str(prepared),
+                "profile": "local_wsl",
+                "output_root": str(root),
+                "run_dir": str(run_dir),
+                "mask_scale": "1.0",
+                "status": "bridge_complete",
+                "created_at": "2026-05-15T12:00:00",
+                "updated_at": "2026-05-15T12:00:00",
+                "paths": {
+                    "run_dir": str(run_dir),
+                    "logs_dir": str(logs_dir),
+                    "sam_dir": str(run_dir / "sam"),
+                    "bridge_dir": str(bridge_dir),
+                    "prepared_dir": str(run_dir / "prepared"),
+                    "holopart_dir": str(holopart_dir),
+                    "manifest_path": str(run_dir / "manifest.json"),
+                },
+                "commands": [{"command": ["old"]}],
+                "sampart3d": {"kept": True},
+                "bridge": {"prepared_glb": str(prepared)},
+            }
+            (run_dir / "manifest.json").write_text(json.dumps(manifest_data), encoding="utf-8")
+
+            class FakeHoloPartRunner:
+                def run(self, profile, run_paths, **kwargs):
+                    output = run_paths.holopart_dir / "output.glb"
+                    output.write_bytes(b"out")
+                    return HoloPartResult(
+                        paths=HoloPartPaths(
+                            prepared_glb=run_paths.bridge_dir / "prepared_parts.glb",
+                            output_dir=run_paths.holopart_dir,
+                            output_glb=output,
+                        ),
+                        command=CommandResult(
+                            command=["holopart"],
+                            cwd=profile.holopart.repo,
+                            exit_code=0,
+                            stdout_log=run_paths.logs_dir / "holopart.stdout.log",
+                            stderr_log=run_paths.logs_dir / "holopart.stderr.log",
+                        ),
+                    )
+
+            manifest = run_holopart_for_existing_run(
+                run_dir,
+                ROOT / "configs" / "default.yaml",
+                holopart_runner=FakeHoloPartRunner(),
+            )
+
+            saved = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest.status, "holopart_complete")
+            self.assertEqual(saved["status"], "holopart_complete")
+            self.assertIn("sampart3d", saved)
+            self.assertIn("bridge", saved)
+            self.assertIn("holopart", saved)
+            self.assertEqual(saved["holopart"]["output_glb"], str(holopart_dir / "output.glb"))
 
 
 if __name__ == "__main__":
