@@ -25,6 +25,9 @@ class ConfigTests(unittest.TestCase):
         )
         self.assertEqual(profile.output_root, ROOT / "outputs" / "runs")
         self.assertEqual(config.default_mask_scale, "1.0")
+        self.assertTrue(config.bridge.merge_small_parts)
+        self.assertEqual(config.bridge.min_faces_per_part, 100)
+        self.assertEqual(config.bridge.min_area_ratio, 0.001)
 
     def test_server_profile_contains_known_ssh_identity(self) -> None:
         config = load_config(ROOT / "configs" / "default.yaml")

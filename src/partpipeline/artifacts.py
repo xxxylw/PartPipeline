@@ -19,16 +19,18 @@ def create_run_paths(
     run_dir = output_root.expanduser().resolve() / f"{_safe_stem(input_path)}-{stamp}"
     logs_dir = run_dir / "logs"
     sam_dir = run_dir / "sam"
+    bridge_dir = run_dir / "bridge"
     prepared_dir = run_dir / "prepared"
     holopart_dir = run_dir / "holopart"
 
-    for directory in (logs_dir, sam_dir, prepared_dir, holopart_dir):
+    for directory in (logs_dir, sam_dir, bridge_dir, prepared_dir, holopart_dir):
         directory.mkdir(parents=True, exist_ok=True)
 
     return RunPaths(
         run_dir=run_dir,
         logs_dir=logs_dir,
         sam_dir=sam_dir,
+        bridge_dir=bridge_dir,
         prepared_dir=prepared_dir,
         holopart_dir=holopart_dir,
         manifest_path=run_dir / "manifest.json",
@@ -42,6 +44,14 @@ def copy_selected_mask(source: Path, sam_dir: Path) -> Path:
     destination = sam_dir / source.name
     shutil.copy2(source, destination)
     return destination
+
+
+def bridge_artifact_paths(paths: RunPaths, mask_scale: str) -> dict[str, Path]:
+    return {
+        "prepared_glb": paths.bridge_dir / "prepared_parts.glb",
+        "merged_mask": paths.bridge_dir / f"mesh_{mask_scale}_merged.npy",
+        "part_manifest": paths.bridge_dir / "part_manifest.json",
+    }
 
 
 def write_manifest(manifest: RunManifest) -> Path:

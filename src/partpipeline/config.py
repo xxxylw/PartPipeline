@@ -5,7 +5,7 @@ from typing import Any
 
 import yaml
 
-from partpipeline.types import PipelineConfig, RuntimeProfile, ServerSSH, ToolRuntime
+from partpipeline.types import BridgeConfig, PipelineConfig, RuntimeProfile, ServerSSH, ToolRuntime
 
 
 class ConfigError(ValueError):
@@ -42,6 +42,7 @@ def load_config(path: Path) -> PipelineConfig:
         profiles=profiles,
         default_mask_scale=str(pipeline.get("default_mask_scale", "1.0")),
         environment_strategy=str(environment.get("strategy", "dispatcher")),
+        bridge=_load_bridge_config(pipeline.get("bridge", {})),
         raw=data,
     )
 
@@ -95,6 +96,19 @@ def _load_tool_runtime(name: str, data: dict[str, Any], project_root: Path) -> T
         python=_resolve_path(_required_str(data, "python"), project_root),
         env=str(data["env"]) if data.get("env") is not None else None,
         settings={key: value for key, value in data.items() if key not in {"repo", "python", "env"}},
+    )
+
+
+def _load_bridge_config(data: Any) -> BridgeConfig:
+    if data is None:
+        data = {}
+    if not isinstance(data, dict):
+        raise ConfigError("pipeline.bridge must be a mapping")
+    return BridgeConfig(
+        merge_small_parts=bool(data.get("merge_small_parts", True)),
+        min_faces_per_part=int(data.get("min_faces_per_part", 100)),
+        min_area_ratio=float(data.get("min_area_ratio", 0.001)),
+        validate_holopart_prepare_data=bool(data.get("validate_holopart_prepare_data", False)),
     )
 
 

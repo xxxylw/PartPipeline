@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from partpipeline.artifacts import copy_selected_mask, create_run_paths, write_manifest
+from partpipeline.artifacts import bridge_artifact_paths, copy_selected_mask, create_run_paths, write_manifest
 from partpipeline.types import RunManifest
 
 
@@ -27,8 +27,13 @@ class ArtifactTests(unittest.TestCase):
             self.assertEqual(paths.run_dir.name, "fancy-chair-20260515-120000")
             self.assertTrue(paths.logs_dir.is_dir())
             self.assertTrue(paths.sam_dir.is_dir())
+            self.assertTrue(paths.bridge_dir.is_dir())
             self.assertTrue(paths.prepared_dir.is_dir())
             self.assertTrue(paths.holopart_dir.is_dir())
+            bridge_paths = bridge_artifact_paths(paths, "1.0")
+            self.assertEqual(bridge_paths["prepared_glb"], paths.bridge_dir / "prepared_parts.glb")
+            self.assertEqual(bridge_paths["merged_mask"], paths.bridge_dir / "mesh_1.0_merged.npy")
+            self.assertEqual(bridge_paths["part_manifest"], paths.bridge_dir / "part_manifest.json")
 
             manifest = RunManifest(
                 input_path=Path("/assets/fancy chair.glb"),
@@ -50,6 +55,7 @@ class ArtifactTests(unittest.TestCase):
             self.assertEqual(saved["profile"], "local_wsl")
             self.assertEqual(saved["mask_scale"], "1.0")
             self.assertEqual(saved["paths"]["logs_dir"], str(paths.logs_dir))
+            self.assertEqual(saved["paths"]["bridge_dir"], str(paths.bridge_dir))
 
     def test_copy_selected_mask_preserves_contents(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

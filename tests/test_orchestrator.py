@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from partpipeline.orchestrator import prepare_single_run
-from partpipeline.types import CommandResult, RunRequest, Sampart3DPaths, Sampart3DResult
+from partpipeline.types import BridgeResult, CommandResult, RunRequest, Sampart3DPaths, Sampart3DResult
 
 
 class OrchestratorTests(unittest.TestCase):
@@ -71,6 +71,26 @@ class OrchestratorTests(unittest.TestCase):
                         copied_selected_mask=selected,
                     )
 
+            class FakeBridgeConverter:
+                def convert(self, glb_path, mask_path, run_paths, mask_scale):
+                    prepared = run_paths.bridge_dir / "prepared_parts.glb"
+                    merged = run_paths.bridge_dir / f"mesh_{mask_scale}_merged.npy"
+                    part_manifest = run_paths.bridge_dir / "part_manifest.json"
+                    prepared.write_bytes(b"glb")
+                    merged.write_bytes(b"mask")
+                    part_manifest.write_text("{}", encoding="utf-8")
+                    return BridgeResult(
+                        source_glb=glb_path,
+                        source_mask=mask_path,
+                        prepared_glb=prepared,
+                        merged_mask=merged,
+                        part_manifest=part_manifest,
+                        original_part_count=2,
+                        final_part_count=2,
+                        parts=[],
+                        merge_history=[],
+                    )
+
             manifest = prepare_single_run(
                 RunRequest(
                     input_path=glb,
@@ -79,11 +99,13 @@ class OrchestratorTests(unittest.TestCase):
                     dry_run=False,
                 ),
                 sampart3d_runner=FakeRunner(),
+                bridge_converter=FakeBridgeConverter(),
             )
 
             saved = json.loads(manifest.paths.manifest_path.read_text(encoding="utf-8"))
-            self.assertEqual(saved["status"], "sampart3d_complete")
+            self.assertEqual(saved["status"], "bridge_complete")
             self.assertEqual(saved["sampart3d"]["copied_selected_mask"], str(manifest.paths.sam_dir / "mesh_1.0.npy"))
+            self.assertEqual(saved["bridge"]["prepared_glb"], str(manifest.paths.bridge_dir / "prepared_parts.glb"))
             self.assertEqual(saved["commands"][0]["exit_code"], 0)
 
 

@@ -16,7 +16,7 @@
 ### Segmentation Bridge
 
 - [x] **BRIDGE-01**: System can locate SAMPart3D output `mesh_1.0.npy` for an input object. Validated in Phase 4.
-- [ ] **BRIDGE-02**: System can convert `input.glb + mesh_1.0.npy` into a HoloPart-compatible multipart GLB scene.
+- [x] **BRIDGE-02**: System can convert `input.glb + mesh_1.0.npy` into a HoloPart-compatible multipart GLB scene. Validated in Phase 5.
 
 ### Completion
 

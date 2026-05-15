@@ -23,6 +23,14 @@ class ToolRuntime:
 
 
 @dataclass(frozen=True)
+class BridgeConfig:
+    merge_small_parts: bool = True
+    min_faces_per_part: int = 100
+    min_area_ratio: float = 0.001
+    validate_holopart_prepare_data: bool = False
+
+
+@dataclass(frozen=True)
 class RuntimeProfile:
     name: str
     project_root: Path
@@ -40,6 +48,7 @@ class PipelineConfig:
     profiles: dict[str, RuntimeProfile]
     default_mask_scale: str
     environment_strategy: str
+    bridge: BridgeConfig = field(default_factory=BridgeConfig)
     raw: dict[str, Any] = field(default_factory=dict)
 
 
@@ -58,6 +67,7 @@ class RunPaths:
     run_dir: Path
     logs_dir: Path
     sam_dir: Path
+    bridge_dir: Path
     prepared_dir: Path
     holopart_dir: Path
     manifest_path: Path
@@ -67,6 +77,7 @@ class RunPaths:
             "run_dir": str(self.run_dir),
             "logs_dir": str(self.logs_dir),
             "sam_dir": str(self.sam_dir),
+            "bridge_dir": str(self.bridge_dir),
             "prepared_dir": str(self.prepared_dir),
             "holopart_dir": str(self.holopart_dir),
             "manifest_path": str(self.manifest_path),
@@ -136,6 +147,77 @@ class Sampart3DResult:
 
 
 @dataclass(frozen=True)
+class BridgePartStats:
+    label: int
+    name: str
+    face_count: int
+    face_ratio: float
+    area: float
+    merged_from: list[int] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "label": self.label,
+            "name": self.name,
+            "face_count": self.face_count,
+            "face_ratio": self.face_ratio,
+            "area": self.area,
+            "merged_from": self.merged_from,
+        }
+
+
+@dataclass(frozen=True)
+class BridgeMergeRecord:
+    source_label: int
+    target_label: int
+    method: str
+    reason: str
+    face_count: int
+    boundary_count: int | None = None
+    distance: float | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        data: dict[str, Any] = {
+            "source_label": self.source_label,
+            "target_label": self.target_label,
+            "method": self.method,
+            "reason": self.reason,
+            "face_count": self.face_count,
+        }
+        if self.boundary_count is not None:
+            data["boundary_count"] = self.boundary_count
+        if self.distance is not None:
+            data["distance"] = self.distance
+        return data
+
+
+@dataclass(frozen=True)
+class BridgeResult:
+    source_glb: Path
+    source_mask: Path
+    prepared_glb: Path
+    merged_mask: Path
+    part_manifest: Path
+    original_part_count: int
+    final_part_count: int
+    parts: list[BridgePartStats]
+    merge_history: list[BridgeMergeRecord]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "source_glb": str(self.source_glb),
+            "source_mask": str(self.source_mask),
+            "prepared_glb": str(self.prepared_glb),
+            "merged_mask": str(self.merged_mask),
+            "part_manifest": str(self.part_manifest),
+            "original_part_count": self.original_part_count,
+            "final_part_count": self.final_part_count,
+            "parts": [part.to_dict() for part in self.parts],
+            "merge_history": [record.to_dict() for record in self.merge_history],
+        }
+
+
+@dataclass(frozen=True)
 class RunManifest:
     input_path: Path
     profile: str
@@ -148,6 +230,7 @@ class RunManifest:
     paths: RunPaths
     commands: list[CommandResult] = field(default_factory=list)
     sampart3d: Sampart3DResult | None = None
+    bridge: BridgeResult | None = None
     error: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -165,6 +248,8 @@ class RunManifest:
         }
         if self.sampart3d is not None:
             data["sampart3d"] = self.sampart3d.to_dict()
+        if self.bridge is not None:
+            data["bridge"] = self.bridge.to_dict()
         if self.error is not None:
             data["error"] = self.error
         return data
