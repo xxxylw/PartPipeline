@@ -52,12 +52,12 @@
 | REPO-01 | Phase 1 |
 | REPO-02 | Phase 1 |
 | CLI-01 | Phase 1, Phase 3 |
-| CLI-02 | Phase 1, Phase 6 |
-| CLI-03 | Phase 1, Phase 3 |
+| CLI-02 | Phase 1, Phase 3, Phase 7 |
+| CLI-03 | Phase 1, Phase 3, Phase 4 |
 | BRIDGE-01 | Phase 4 |
-| BRIDGE-02 | Phase 4 |
-| HOLO-01 | Phase 5 |
-| OUT-01 | Phase 6 |
-| OUT-02 | Phase 6 |
+| BRIDGE-02 | Phase 5 |
+| HOLO-01 | Phase 6 |
+| OUT-01 | Phase 3, Phase 7 |
+| OUT-02 | Phase 7 |
 | ENV-01 | Phase 2 |
 | ENV-02 | Phase 2 |
