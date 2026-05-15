@@ -96,6 +96,46 @@ class CommandResult:
 
 
 @dataclass(frozen=True)
+class Sampart3DPaths:
+    exp_name: str
+    mesh_path: Path
+    render_dir: Path
+    exp_dir: Path
+    config_path: Path
+    results_dir: Path
+    vis_dir: Path
+    selected_mask: Path
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "exp_name": self.exp_name,
+            "mesh_path": str(self.mesh_path),
+            "render_dir": str(self.render_dir),
+            "exp_dir": str(self.exp_dir),
+            "config_path": str(self.config_path),
+            "results_dir": str(self.results_dir),
+            "vis_dir": str(self.vis_dir),
+            "selected_mask": str(self.selected_mask),
+        }
+
+
+@dataclass(frozen=True)
+class Sampart3DResult:
+    paths: Sampart3DPaths
+    command: CommandResult
+    copied_selected_mask: Path | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "paths": self.paths.to_dict(),
+            "command": self.command.to_dict(),
+            "copied_selected_mask": str(self.copied_selected_mask)
+            if self.copied_selected_mask is not None
+            else None,
+        }
+
+
+@dataclass(frozen=True)
 class RunManifest:
     input_path: Path
     profile: str
@@ -107,9 +147,11 @@ class RunManifest:
     updated_at: str
     paths: RunPaths
     commands: list[CommandResult] = field(default_factory=list)
+    sampart3d: Sampart3DResult | None = None
+    error: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data: dict[str, Any] = {
             "input_path": str(self.input_path),
             "profile": self.profile,
             "output_root": str(self.output_root),
@@ -121,3 +163,8 @@ class RunManifest:
             "paths": self.paths.to_dict(),
             "commands": [command.to_dict() for command in self.commands],
         }
+        if self.sampart3d is not None:
+            data["sampart3d"] = self.sampart3d.to_dict()
+        if self.error is not None:
+            data["error"] = self.error
+        return data

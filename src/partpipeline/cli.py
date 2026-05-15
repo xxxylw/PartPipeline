@@ -7,6 +7,7 @@ import typer
 
 from partpipeline.config import load_config, resolve_profile
 from partpipeline.orchestrator import prepare_single_run
+from partpipeline.runners.sampart3d import Sampart3DExecutionError, Sampart3DPreflightError
 from partpipeline.types import RunRequest
 
 
@@ -22,17 +23,22 @@ def run(
     mask_scale: Optional[str] = typer.Option(None, "--mask-scale"),
     dry_run: bool = typer.Option(False, "--dry-run"),
 ) -> None:
-    """Prepare a single GLB pipeline run and write a manifest."""
-    manifest = prepare_single_run(
-        RunRequest(
-            input_path=input_glb,
-            config_path=config,
-            profile_name=profile,
-            output_dir=output_dir,
-            mask_scale=mask_scale,
-            dry_run=dry_run,
+    """Run or prepare a single GLB pipeline run and write a manifest."""
+    try:
+        manifest = prepare_single_run(
+            RunRequest(
+                input_path=input_glb,
+                config_path=config,
+                profile_name=profile,
+                output_dir=output_dir,
+                mask_scale=mask_scale,
+                dry_run=dry_run,
+            )
         )
-    )
+    except (Sampart3DPreflightError, Sampart3DExecutionError) as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from exc
+
     typer.echo(f"Profile: {manifest.profile}")
     typer.echo(f"Status: {manifest.status}")
     typer.echo(f"Run directory: {manifest.run_dir}")

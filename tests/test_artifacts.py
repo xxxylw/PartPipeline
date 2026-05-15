@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from partpipeline.artifacts import create_run_paths, write_manifest
+from partpipeline.artifacts import copy_selected_mask, create_run_paths, write_manifest
 from partpipeline.types import RunManifest
 
 
@@ -50,6 +50,24 @@ class ArtifactTests(unittest.TestCase):
             self.assertEqual(saved["profile"], "local_wsl")
             self.assertEqual(saved["mask_scale"], "1.0")
             self.assertEqual(saved["paths"]["logs_dir"], str(paths.logs_dir))
+
+    def test_copy_selected_mask_preserves_contents(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            source = root / "source" / "mesh_1.0.npy"
+            source.parent.mkdir()
+            source.write_bytes(b"mask bytes")
+            destination = copy_selected_mask(source, root / "sam")
+
+            self.assertEqual(destination, root / "sam" / "mesh_1.0.npy")
+            self.assertEqual(destination.read_bytes(), b"mask bytes")
+
+    def test_copy_selected_mask_fails_when_source_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+
+            with self.assertRaisesRegex(FileNotFoundError, "mesh_1.0.npy"):
+                copy_selected_mask(root / "mesh_1.0.npy", root / "sam")
 
 
 if __name__ == "__main__":

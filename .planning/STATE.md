@@ -9,4 +9,4 @@ See: `.planning/PROJECT.md` (updated 2026-05-15)
 
 ## Last Session
 
-Completed Phase 3 runtime configuration and layered core. The project now has profile-based YAML config, `local_wsl` and `server` profiles, a dry-run manifest/artifact contract, a model-agnostic subprocess runner, and separated CLI/config/orchestration/runner/artifact/type layers. Next: replace the SAMPart3D placeholder command with the real single-GLB SAMPart3D runner.
+Implemented the PartPipeline-side SAMPart3D runner for Phase 4. Automated tests pass and dry-run works with the real SAMPart3D command contract. Real model execution is currently blocked by missing local SAMPart3D prerequisites: Blender at `third_party/SAMPart3D/blender-4.0.0-linux-x64/blender` and backbone weight at `third_party/SAMPart3D/ckpt/ptv3-object.pth`.

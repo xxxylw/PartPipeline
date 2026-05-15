@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
@@ -32,6 +33,15 @@ def create_run_paths(
         holopart_dir=holopart_dir,
         manifest_path=run_dir / "manifest.json",
     )
+
+
+def copy_selected_mask(source: Path, sam_dir: Path) -> Path:
+    if not source.exists():
+        raise FileNotFoundError(f"Selected SAMPart3D mask does not exist: {source}")
+    sam_dir.mkdir(parents=True, exist_ok=True)
+    destination = sam_dir / source.name
+    shutil.copy2(source, destination)
+    return destination
 
 
 def write_manifest(manifest: RunManifest) -> Path:

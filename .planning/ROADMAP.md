@@ -34,6 +34,7 @@
 
 ### Phase 4: SAMPart3D Integration
 **Goal:** Run SAMPart3D for a single input `.glb` through the layered runner and locate the default `mesh_1.0.npy` segmentation result.
+**Status:** Blocked on local prerequisites (2026-05-15)
 **Mode:** mvp
 **Requirements:** CLI-01, CLI-03, BRIDGE-01
 **Success Criteria**:
