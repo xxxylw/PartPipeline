@@ -18,7 +18,7 @@ Determine whether SAMPart3D and HoloPart can safely share one conda environment.
 - Do not install or upgrade heavy dependencies during this phase.
 - Do not run full SAMPart3D rendering/training/eval.
 - Do not run full HoloPart model inference or download model weights.
-- Do not mutate the existing p3sam or holopart environments.
+- Do not mutate the existing `p3sam` or `holopart` environments.
 
 ## Wave 1: Environment Inventory
 
@@ -30,44 +30,46 @@ Collect machine-readable facts for both environments:
 - executable path
 - conda prefix
 - PyTorch version
-- CUDA availability and 	orch.version.cuda
+- CUDA availability and `torch.version.cuda`
 - GPU count/name if visible
 - installed versions for key packages:
-  - 	orch, 	orchvision, 	orchaudio
-  - 	orch_cluster, 	orch_scatter, 	orch_sparse
-  - 	rimesh, 
-umpy, pymeshlab
-  - diffusers, 	ransformers, huggingface_hub
-  - pointcept import availability if applicable
+  - `torch`, `torchvision`, `torchaudio`
+  - `torch_cluster`, `torch_scatter`, `torch_sparse`
+  - `trimesh`, `numpy`, `pymeshlab`
+  - `diffusers`, `transformers`, `huggingface_hub`
+  - `pointcept` import availability if applicable
 
 Expected artifact:
 
-- docs/environment-strategy.md with an inventory table.
+- `docs/environment-strategy.md` with an inventory table.
 
 Suggested commands:
 
-
+```bash
+/home/rui/miniconda3/envs/p3sam/bin/python scripts/probe_env.py --json outputs/env_probe/p3sam.json
+/home/rui/miniconda3/envs/holopart/bin/python scripts/probe_env.py --json outputs/env_probe/holopart.json
+```
 
 ### Task 2: Compare project requirements
 
 Read and summarize:
 
-- 	hird_party/SAMPart3D/requirements.txt
-- 	hird_party/HoloPart/requirements.txt
+- `third_party/SAMPart3D/requirements.txt`
+- `third_party/HoloPart/requirements.txt`
 - any install notes that directly affect runtime compatibility
 
 Expected artifact:
 
-- docs/environment-strategy.md includes a dependency comparison section.
+- `docs/environment-strategy.md` includes a dependency comparison section.
 
 ## Wave 2: Smoke Tests
 
 ### Task 3: SAMPart3D import smoke test
 
-In p3sam, verify imports needed before full execution:
+In `p3sam`, verify imports needed before full execution:
 
 - Python can import standard runtime dependencies.
-- 	hird_party/SAMPart3D/tools/run_sampart3d_object.py --help works.
+- `third_party/SAMPart3D/tools/run_sampart3d_object.py --help` works.
 - SAMPart3D launch/config modules can be imported enough to catch missing packages.
 
 Pass criteria:
@@ -77,11 +79,11 @@ Pass criteria:
 
 ### Task 4: HoloPart import smoke test
 
-In holopart, verify imports needed before full execution:
+In `holopart`, verify imports needed before full execution:
 
-- Python can import 	rimesh, pymeshlab, 	orch, diffusers, huggingface_hub.
-- 	hird_party/HoloPart/scripts/inference_holopart.py --help works if import-time dependencies allow it.
-- holopart.pipelines.pipeline_holopart and holopart.inference_utils imports are tested without running inference.
+- Python can import `trimesh`, `pymeshlab`, `torch`, `diffusers`, `huggingface_hub`.
+- `third_party/HoloPart/scripts/inference_holopart.py --help` works if import-time dependencies allow it.
+- `holopart.pipelines.pipeline_holopart` and `holopart.inference_utils` imports are tested without running inference.
 
 Pass criteria:
 
@@ -110,7 +112,7 @@ Decision rule:
 
 Expected artifact:
 
-- docs/environment-strategy.md records the decision and rationale.
+- `docs/environment-strategy.md` records the decision and rationale.
 
 ## Wave 4: Dispatcher Contract
 
@@ -118,24 +120,30 @@ Expected artifact:
 
 If dispatcher is selected, document the contract PartPipeline will implement later:
 
-- sampart3d.env: p3sam
-- holopart.env: holopart
-- commands are launched via conda environment-specific Python paths or conda run
-- each subprocess receives explicit cwd, PYTHONPATH, and log path
+- `sampart3d.env`: `p3sam`
+- `holopart.env`: `holopart`
+- commands are launched via conda environment-specific Python paths or `conda run`
+- each subprocess receives explicit `cwd`, `PYTHONPATH`, and log path
 - errors surface command, env, exit code, and log file
 
 Expected artifact:
 
-- configs/default.yaml remains or is updated with the selected env strategy.
-- docs/environment-strategy.md includes dispatcher command examples.
+- `configs/default.yaml` remains or is updated with the selected env strategy.
+- `docs/environment-strategy.md` includes dispatcher command examples.
 
 ## Verification
 
 Run these checks before marking Phase 2 complete:
 
+```bash
+cd /home/rui/of_work/code/PartPipeline
+git status --short
+/home/rui/miniconda3/envs/p3sam/bin/python -m py_compile src/partpipeline/cli.py
+/home/rui/miniconda3/envs/p3sam/bin/python scripts/probe_env.py --json /tmp/p3sam_probe.json
+/home/rui/miniconda3/envs/holopart/bin/python scripts/probe_env.py --json /tmp/holopart_probe.json
+```
 
-
-If scripts/probe_env.py does not exist yet, creating it is part of Phase 2 execution.
+If `scripts/probe_env.py` does not exist yet, creating it is part of Phase 2 execution.
 
 ## Completion Criteria
 
