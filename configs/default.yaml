@@ -1,0 +1,11 @@
+sampart3d:
+  repo: third_party/SAMPart3D
+  env: p3sam
+  default_mask_scale: "1.0"
+
+holopart:
+  repo: third_party/HoloPart
+  env: holopart
+
+outputs:
+  keep_intermediates: true
