@@ -29,8 +29,8 @@
 
 ### Environment
 
-- [ ] **ENV-01**: System documents whether a shared environment works or whether env dispatch is required.
-- [ ] **ENV-02**: User-facing commands remain unified even if internal steps use separate conda environments.
+- [x] **ENV-01**: System documents whether a shared environment works or whether env dispatch is required. Validated in Phase 2.
+- [x] **ENV-02**: User-facing commands remain unified even if internal steps use separate conda environments. Validated in Phase 2.
 
 ## v2 Requirements
 
