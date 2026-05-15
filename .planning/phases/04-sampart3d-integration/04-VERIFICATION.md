@@ -2,9 +2,9 @@
 
 ## Result
 
-PARTIAL / BLOCKED.
+PASS.
 
-The PartPipeline-side SAMPart3D integration is implemented and automatically verified. The real full SAMPart3D run did not start because preflight found missing local resources.
+The real SAMPart3D run completed and produced the default selected segmentation result `mesh_1.0.npy`.
 
 ## Automated Checks
 
@@ -12,7 +12,7 @@ The PartPipeline-side SAMPart3D integration is implemented and automatically ver
 PYTHONPATH=src /home/rui/miniconda3/envs/part/bin/python -m unittest discover -s tests
 ```
 
-Result: PASS, 21 tests.
+Result: PASS, 22 tests.
 
 ```bash
 /home/rui/miniconda3/envs/part/bin/python -m py_compile src/partpipeline/*.py src/partpipeline/runners/*.py scripts/probe_env.py
@@ -20,65 +20,41 @@ Result: PASS, 21 tests.
 
 Result: PASS.
 
-```bash
-PYTHONPATH=src /home/rui/miniconda3/envs/part/bin/python -m partpipeline.cli --help
-```
+## Real Run Verification
 
-Result: PASS.
+Command:
 
 ```bash
-PYTHONPATH=src /home/rui/miniconda3/envs/part/bin/python -m partpipeline.cli run "/mnt/d/of_work/resources/Disassembled parts/08.Toulouse 双人沙发组合.glb" --dry-run
-```
-
-Result: PASS. A dry-run manifest was created and recorded a SAMPart3D command using the `part` profile.
-
-## Real-Run Preflight
-
-Command attempted:
-
-```bash
+cd /home/rui/of_work/code/PartPipeline
 PYTHONPATH=src /home/rui/miniconda3/envs/part/bin/python -m partpipeline.cli run "/mnt/d/of_work/resources/Disassembled parts/08.Toulouse 双人沙发组合.glb"
 ```
 
-Observed blocker:
+Result:
 
 ```text
-SAMPart3D preflight failed:
-- Blender executable missing: /home/rui/of_work/code/PartPipeline/third_party/SAMPart3D/blender-4.0.0-linux-x64/blender
-- SAMPart3D backbone weight missing: /home/rui/of_work/code/PartPipeline/third_party/SAMPart3D/ckpt/ptv3-object.pth
+Profile: local_wsl
+Status: sampart3d_complete
+Run directory: /home/rui/of_work/code/PartPipeline/outputs/runs/08.toulouse-20260515-160213
+Manifest: /home/rui/of_work/code/PartPipeline/outputs/runs/08.toulouse-20260515-160213/manifest.json
 ```
 
-The failed run manifest was written under:
+Verified files:
 
 ```text
-outputs/runs/08.toulouse-20260515-154348/manifest.json
+/home/rui/of_work/code/PartPipeline/third_party/SAMPart3D/exp/sampart3d/08.toulouse-20260515-160213/results/5000/mesh_1.0.npy
+/home/rui/of_work/code/PartPipeline/outputs/runs/08.toulouse-20260515-160213/sam/mesh_1.0.npy
 ```
 
-Manifest behavior verified:
-
-- `status`: `failed`
-- `error.type`: `preflight`
-- `error.issues`: lists missing Blender and missing `ptv3-object.pth`
-- no dependency install or resource download was attempted
+The copied PartPipeline artifact is about 7.6 MB.
 
 ## Requirement Coverage
 
 | Requirement | Status | Notes |
 |-------------|--------|-------|
-| CLI-01 | PARTIAL | Single-file command reaches the SAMPart3D runner and preflight. Full model execution is blocked by missing local resources. |
-| CLI-03 | COVERED for implementation | Mask scale controls selected result path, defaulting to `mesh_1.0.npy`; tested without model execution. |
-| BRIDGE-01 | PARTIAL | Code can predict and copy `mesh_1.0.npy` when produced; real file not produced yet because full SAMPart3D run is blocked. |
+| CLI-01 | COVERED for SAMPart3D stage | A single GLB can trigger SAMPart3D through the PartPipeline command. Full end-to-end pipeline continues in later phases. |
+| CLI-03 | COVERED | Mask scale defaults to `1.0`; the selected result path is `mesh_1.0.npy`, and the override path is covered by tests. |
+| BRIDGE-01 | COVERED | PartPipeline locates and copies SAMPart3D output `mesh_1.0.npy`. |
 
-## Completion Gate
+## Notes
 
-Do not mark Phase 4 complete until a real run produces or locates:
-
-```text
-third_party/SAMPart3D/exp/sampart3d/<exp-name>/results/5000/mesh_1.0.npy
-```
-
-and copies it into:
-
-```text
-outputs/runs/<run>/sam/mesh_1.0.npy
-```
+The first real run exposed a filename mismatch when the input GLB stem contained spaces. The runner now stages the source GLB to a space-free filename inside the PartPipeline run directory before calling SAMPart3D. This keeps SAMPart3D render/train/eval object names aligned.

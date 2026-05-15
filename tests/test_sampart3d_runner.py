@@ -122,6 +122,38 @@ class Sampart3DRunnerTests(unittest.TestCase):
             self.assertEqual(result.command.env["CONDA_DEFAULT_ENV"], "part")
             self.assertEqual(result.paths.selected_mask.name, "mesh_1.0.npy")
 
+    def test_real_run_stages_input_to_space_free_glb_name(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            profile = create_fake_sampart3d_layout(root)
+            glb = root / "08.Toulouse 双人沙发组合.glb"
+            glb.write_text("glb", encoding="utf-8")
+            paths = create_run_paths(glb, root / "runs", timestamp="20260515-120000")
+            expected_mask = (
+                profile.sampart3d.repo
+                / "exp"
+                / "sampart3d"
+                / paths.run_dir.name
+                / "results"
+                / "5000"
+                / "mesh_1.0.npy"
+            )
+            fake = FakeSubprocessRunner(selected_mask=expected_mask)
+
+            Sampart3DRunner(fake).run(
+                input_path=glb,
+                profile=profile,
+                run_paths=paths,
+                mask_scale="1.0",
+                dry_run=False,
+            )
+
+            command = fake.calls[0]["command"]
+            glb_arg = command[command.index("--glb") + 1]
+            self.assertEqual(Path(glb_arg).name, f"{paths.run_dir.name}.glb")
+            self.assertNotIn(" ", Path(glb_arg).stem)
+            self.assertTrue(Path(glb_arg).exists())
+
     def test_cuda_loader_symlinks_are_created_from_torch_libs(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

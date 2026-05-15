@@ -11,11 +11,11 @@
 
 - [ ] **CLI-01**: User can run a single `.glb` through one command.
 - [ ] **CLI-02**: User can run all `.glb` files in a directory through one batch command.
-- [ ] **CLI-03**: User can override the SAMPart3D mask scale, with `1.0` as the default.
+- [x] **CLI-03**: User can override the SAMPart3D mask scale, with `1.0` as the default. Validated for SAMPart3D result selection in Phase 4.
 
 ### Segmentation Bridge
 
-- [ ] **BRIDGE-01**: System can locate SAMPart3D output `mesh_1.0.npy` for an input object.
+- [x] **BRIDGE-01**: System can locate SAMPart3D output `mesh_1.0.npy` for an input object. Validated in Phase 4.
 - [ ] **BRIDGE-02**: System can convert `input.glb + mesh_1.0.npy` into a HoloPart-compatible multipart GLB scene.
 
 ### Completion
@@ -51,13 +51,13 @@
 |-------------|-------|
 | REPO-01 | Phase 1 |
 | REPO-02 | Phase 1 |
-| CLI-01 | Phase 1, Phase 3 |
+| CLI-01 | Phase 1, Phase 3, Phase 4 |
 | CLI-02 | Phase 1, Phase 3, Phase 7 |
 | CLI-03 | Phase 1, Phase 3, Phase 4 |
 | BRIDGE-01 | Phase 4 |
 | BRIDGE-02 | Phase 5 |
 | HOLO-01 | Phase 6 |
-| OUT-01 | Phase 3, Phase 7 |
+| OUT-01 | Phase 3, Phase 4, Phase 7 |
 | OUT-02 | Phase 7 |
 | ENV-01 | Phase 2 |
 | ENV-02 | Phase 2 |

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 from pathlib import Path
 
 from partpipeline.artifacts import copy_selected_mask
@@ -34,8 +35,9 @@ class Sampart3DRunner:
         weight_name: str = "5000",
     ) -> Sampart3DResult:
         input_path = input_path.expanduser().resolve()
-        paths = self.build_paths(profile, input_path, run_paths.run_dir.name, mask_scale, weight_name)
-        command = self.build_command(profile, input_path, paths.exp_name, weight_name)
+        command_input = self.staged_input_path(input_path, run_paths)
+        paths = self.build_paths(profile, command_input, run_paths.run_dir.name, mask_scale, weight_name)
+        command = self.build_command(profile, command_input, paths.exp_name, weight_name)
         env = {
             "CONDA_DEFAULT_ENV": profile.sampart3d.env or "",
             "PARTPIPELINE_PROFILE": profile.name,
@@ -44,6 +46,9 @@ class Sampart3DRunner:
 
         if not dry_run:
             self.preflight(profile, input_path, paths)
+            command_input = self.stage_input_glb(input_path, run_paths)
+            paths = self.build_paths(profile, command_input, run_paths.run_dir.name, mask_scale, weight_name)
+            command = self.build_command(profile, command_input, paths.exp_name, weight_name)
             _, cuda_env = self.prepare_cuda_loader(profile)
             env.update(cuda_env)
 
@@ -66,6 +71,16 @@ class Sampart3DRunner:
             copied_mask = copy_selected_mask(paths.selected_mask, run_paths.sam_dir)
 
         return Sampart3DResult(paths=paths, command=command_result, copied_selected_mask=copied_mask)
+
+    def staged_input_path(self, input_path: Path, run_paths: RunPaths) -> Path:
+        return run_paths.sam_dir / f"{run_paths.run_dir.name}.glb"
+
+    def stage_input_glb(self, input_path: Path, run_paths: RunPaths) -> Path:
+        staged = self.staged_input_path(input_path, run_paths)
+        staged.parent.mkdir(parents=True, exist_ok=True)
+        if input_path.resolve() != staged.resolve():
+            shutil.copy2(input_path, staged)
+        return staged
 
     def build_paths(
         self,
@@ -173,6 +188,7 @@ class Sampart3DRunner:
     def _torch_lib_dir(self, profile: RuntimeProfile) -> Path:
         env_root = profile.sampart3d.python.parent.parent
         candidates = sorted((env_root / "lib").glob("python*/site-packages/torch/lib"))
+        candidates = sorted(candidates, key=lambda path: len(path.parts[-5]), reverse=True)
         for candidate in candidates:
             if candidate.exists():
                 return candidate
