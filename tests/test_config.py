@@ -18,10 +18,10 @@ class ConfigTests(unittest.TestCase):
 
         self.assertEqual(config.active_profile, "local_wsl")
         self.assertEqual(profile.name, "local_wsl")
-        self.assertEqual(profile.sampart3d.env, "p3sam")
+        self.assertEqual(profile.sampart3d.env, "part")
         self.assertEqual(
             profile.sampart3d.python,
-            Path("/home/rui/miniconda3/envs/p3sam/bin/python"),
+            Path("/home/rui/miniconda3/envs/part/bin/python"),
         )
         self.assertEqual(profile.output_root, ROOT / "outputs" / "runs")
         self.assertEqual(config.default_mask_scale, "1.0")

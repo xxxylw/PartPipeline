@@ -19,7 +19,7 @@ Passed.
 - `scripts/probe_env.py` exists and writes JSON probe reports.
 - `tests/test_probe_env.py` covers missing-package reporting, subprocess output capture, extra environment propagation, and JSON writing.
 - Probe reports were generated for both candidate environments:
-  - `outputs/env_probe/p3sam.json`
+  - `outputs/env_probe/part.json`
   - `outputs/env_probe/holopart.json`
 - `docs/environment-strategy.md` records the dispatcher decision and rationale.
 - `configs/default.yaml` records the selected dispatcher strategy and env-specific Python executables.

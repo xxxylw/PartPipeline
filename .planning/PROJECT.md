@@ -37,7 +37,7 @@ Input assets currently live in `D:\of_work\resources\Disassembled parts` and inc
 
 - **Runtime**: Work happens in WSL Ubuntu under `/home/rui/of_work/code` because the model projects and conda environments are there.
 - **Dependencies**: SAMPart3D and HoloPart are heavy model repos; use submodules/forks instead of copying code.
-- **Environment**: Investigate one shared conda environment, but accept dispatching to `p3sam` and `holopart` if dependency conflicts make a shared env fragile.
+- **Environment**: Investigate one shared conda environment, but accept dispatching to `part` and `holopart` if dependency conflicts make a shared env fragile.
 - **Default segmentation**: v1 uses SAMPart3D scale `1.0` unless the user overrides it.
 
 ## Key Decisions

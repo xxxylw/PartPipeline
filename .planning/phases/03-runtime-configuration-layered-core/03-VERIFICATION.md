@@ -17,31 +17,31 @@ PASS. Phase 3 created the model-free runtime core and verified it without runnin
 ## Checks
 
 ```bash
-PYTHONPATH=src /home/rui/miniconda3/envs/p3sam/bin/python -m unittest discover -s tests
+PYTHONPATH=src /home/rui/miniconda3/envs/part/bin/python -m unittest discover -s tests
 ```
 
 Result: 12 tests passed.
 
 ```bash
-/home/rui/miniconda3/envs/p3sam/bin/python -m py_compile src/partpipeline/*.py src/partpipeline/runners/*.py scripts/probe_env.py
+/home/rui/miniconda3/envs/part/bin/python -m py_compile src/partpipeline/*.py src/partpipeline/runners/*.py scripts/probe_env.py
 ```
 
 Result: passed.
 
 ```bash
-PYTHONPATH=src /home/rui/miniconda3/envs/p3sam/bin/python -m partpipeline.cli --help
+PYTHONPATH=src /home/rui/miniconda3/envs/part/bin/python -m partpipeline.cli --help
 ```
 
 Result: passed; commands `run` and `batch` are visible.
 
 ```bash
-PYTHONPATH=src /home/rui/miniconda3/envs/p3sam/bin/python -m partpipeline.cli run "/mnt/d/of_work/resources/Disassembled parts/08.Toulouse 双人沙发组合.glb" --dry-run
+PYTHONPATH=src /home/rui/miniconda3/envs/part/bin/python -m partpipeline.cli run "/mnt/d/of_work/resources/Disassembled parts/08.Toulouse 双人沙发组合.glb" --dry-run
 ```
 
 Result: passed; manifest created under `outputs/runs/`.
 
 ```bash
-PYTHONPATH=src /home/rui/miniconda3/envs/p3sam/bin/python -m partpipeline.cli run "/mnt/d/of_work/resources/Disassembled parts/08.Toulouse 双人沙发组合.glb" --profile server --output-dir outputs/server-runs --dry-run
+PYTHONPATH=src /home/rui/miniconda3/envs/part/bin/python -m partpipeline.cli run "/mnt/d/of_work/resources/Disassembled parts/08.Toulouse 双人沙发组合.glb" --profile server --output-dir outputs/server-runs --dry-run
 ```
 
 Result: passed; server profile loaded without touching server filesystem.

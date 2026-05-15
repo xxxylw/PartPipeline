@@ -15,8 +15,8 @@ profiles:
     output_root: outputs/runs
     sampart3d:
       repo: third_party/SAMPart3D
-      env: p3sam
-      python: /home/rui/miniconda3/envs/p3sam/bin/python
+      env: part
+      python: /home/rui/miniconda3/envs/part/bin/python
       default_mask_scale: "1.0"
     holopart:
       repo: third_party/HoloPart
@@ -34,8 +34,8 @@ profiles:
       port: 19091
     sampart3d:
       repo: third_party/SAMPart3D
-      env: p3sam
-      python: /server/path/placeholder/miniconda3/envs/p3sam/bin/python
+      env: part
+      python: /server/path/placeholder/miniconda3/envs/part/bin/python
       default_mask_scale: "1.0"
     holopart:
       repo: third_party/HoloPart

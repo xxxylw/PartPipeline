@@ -30,9 +30,9 @@ The server profile is usable for config loading and dry-run planning. Its filesy
 All planned checks passed on 2026-05-15:
 
 ```bash
-/home/rui/miniconda3/envs/p3sam/bin/python -m unittest discover -s tests
-/home/rui/miniconda3/envs/p3sam/bin/python -m py_compile src/partpipeline/*.py src/partpipeline/runners/*.py scripts/probe_env.py
-PYTHONPATH=src /home/rui/miniconda3/envs/p3sam/bin/python -m partpipeline.cli --help
-PYTHONPATH=src /home/rui/miniconda3/envs/p3sam/bin/python -m partpipeline.cli run "/mnt/d/of_work/resources/Disassembled parts/08.Toulouse 双人沙发组合.glb" --dry-run
-PYTHONPATH=src /home/rui/miniconda3/envs/p3sam/bin/python -m partpipeline.cli run "/mnt/d/of_work/resources/Disassembled parts/08.Toulouse 双人沙发组合.glb" --profile server --output-dir outputs/server-runs --dry-run
+/home/rui/miniconda3/envs/part/bin/python -m unittest discover -s tests
+/home/rui/miniconda3/envs/part/bin/python -m py_compile src/partpipeline/*.py src/partpipeline/runners/*.py scripts/probe_env.py
+PYTHONPATH=src /home/rui/miniconda3/envs/part/bin/python -m partpipeline.cli --help
+PYTHONPATH=src /home/rui/miniconda3/envs/part/bin/python -m partpipeline.cli run "/mnt/d/of_work/resources/Disassembled parts/08.Toulouse 双人沙发组合.glb" --dry-run
+PYTHONPATH=src /home/rui/miniconda3/envs/part/bin/python -m partpipeline.cli run "/mnt/d/of_work/resources/Disassembled parts/08.Toulouse 双人沙发组合.glb" --profile server --output-dir outputs/server-runs --dry-run
 ```

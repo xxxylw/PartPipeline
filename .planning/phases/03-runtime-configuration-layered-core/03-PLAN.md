@@ -205,10 +205,10 @@ Run automated checks:
 
 ```bash
 cd /home/rui/of_work/code/PartPipeline
-/home/rui/miniconda3/envs/p3sam/bin/python -m unittest discover -s tests
-/home/rui/miniconda3/envs/p3sam/bin/python -m py_compile src/partpipeline/*.py src/partpipeline/runners/*.py scripts/probe_env.py
-PYTHONPATH=src /home/rui/miniconda3/envs/p3sam/bin/python -m partpipeline.cli --help
-PYTHONPATH=src /home/rui/miniconda3/envs/p3sam/bin/python -m partpipeline.cli run "/mnt/d/of_work/resources/Disassembled parts/08.Toulouse 双人沙发组合.glb" --dry-run
+/home/rui/miniconda3/envs/part/bin/python -m unittest discover -s tests
+/home/rui/miniconda3/envs/part/bin/python -m py_compile src/partpipeline/*.py src/partpipeline/runners/*.py scripts/probe_env.py
+PYTHONPATH=src /home/rui/miniconda3/envs/part/bin/python -m partpipeline.cli --help
+PYTHONPATH=src /home/rui/miniconda3/envs/part/bin/python -m partpipeline.cli run "/mnt/d/of_work/resources/Disassembled parts/08.Toulouse 双人沙发组合.glb" --dry-run
 ```
 
 Expected result:

@@ -18,7 +18,7 @@ Determine whether SAMPart3D and HoloPart can safely share one conda environment.
 - Do not install or upgrade heavy dependencies during this phase.
 - Do not run full SAMPart3D rendering/training/eval.
 - Do not run full HoloPart model inference or download model weights.
-- Do not mutate the existing `p3sam` or `holopart` environments.
+- Do not mutate the existing `part` or `holopart` environments.
 
 ## Wave 1: Environment Inventory
 
@@ -46,7 +46,7 @@ Expected artifact:
 Suggested commands:
 
 ```bash
-/home/rui/miniconda3/envs/p3sam/bin/python scripts/probe_env.py --json outputs/env_probe/p3sam.json
+/home/rui/miniconda3/envs/part/bin/python scripts/probe_env.py --json outputs/env_probe/part.json
 /home/rui/miniconda3/envs/holopart/bin/python scripts/probe_env.py --json outputs/env_probe/holopart.json
 ```
 
@@ -66,7 +66,7 @@ Expected artifact:
 
 ### Task 3: SAMPart3D import smoke test
 
-In `p3sam`, verify imports needed before full execution:
+In `part`, verify imports needed before full execution:
 
 - Python can import standard runtime dependencies.
 - `third_party/SAMPart3D/tools/run_sampart3d_object.py --help` works.
@@ -120,7 +120,7 @@ Expected artifact:
 
 If dispatcher is selected, document the contract PartPipeline will implement later:
 
-- `sampart3d.env`: `p3sam`
+- `sampart3d.env`: `part`
 - `holopart.env`: `holopart`
 - commands are launched via conda environment-specific Python paths or `conda run`
 - each subprocess receives explicit `cwd`, `PYTHONPATH`, and log path
@@ -138,8 +138,8 @@ Run these checks before marking Phase 2 complete:
 ```bash
 cd /home/rui/of_work/code/PartPipeline
 git status --short
-/home/rui/miniconda3/envs/p3sam/bin/python -m py_compile src/partpipeline/cli.py
-/home/rui/miniconda3/envs/p3sam/bin/python scripts/probe_env.py --json /tmp/p3sam_probe.json
+/home/rui/miniconda3/envs/part/bin/python -m py_compile src/partpipeline/cli.py
+/home/rui/miniconda3/envs/part/bin/python scripts/probe_env.py --json /tmp/part_probe.json
 /home/rui/miniconda3/envs/holopart/bin/python scripts/probe_env.py --json /tmp/holopart_probe.json
 ```
 

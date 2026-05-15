@@ -27,7 +27,7 @@ Host d5
   Port 19091
 ```
 
-The dispatcher decision from Phase 2 is preserved. SAMPart3D uses the `p3sam` environment and HoloPart uses the `holopart` environment until a shared environment is proven viable.
+The dispatcher decision from Phase 2 is preserved. SAMPart3D uses the `part` environment and HoloPart uses the `holopart` environment until a shared environment is proven viable.
 
 ## Run Artifacts
 

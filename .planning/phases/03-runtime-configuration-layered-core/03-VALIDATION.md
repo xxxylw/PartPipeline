@@ -41,9 +41,9 @@ Phase 3 已经完成并通过基础 verification，但 verification 主要证明
 |------|------|
 | 测试框架 | Python `unittest` |
 | CLI 测试工具 | `typer.testing.CliRunner` |
-| 运行环境 | `/home/rui/miniconda3/envs/p3sam/bin/python` |
-| 测试命令 | `PYTHONPATH=src /home/rui/miniconda3/envs/p3sam/bin/python -m unittest discover -s tests` |
-| 编译检查 | `/home/rui/miniconda3/envs/p3sam/bin/python -m py_compile src/partpipeline/*.py src/partpipeline/runners/*.py scripts/probe_env.py` |
+| 运行环境 | `/home/rui/miniconda3/envs/part/bin/python` |
+| 测试命令 | `PYTHONPATH=src /home/rui/miniconda3/envs/part/bin/python -m unittest discover -s tests` |
+| 编译检查 | `/home/rui/miniconda3/envs/part/bin/python -m py_compile src/partpipeline/*.py src/partpipeline/runners/*.py scripts/probe_env.py` |
 
 ## 需求覆盖矩阵
 

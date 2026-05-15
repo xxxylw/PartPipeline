@@ -8,7 +8,7 @@ The user-facing command remains unified through PartPipeline, but internal subpr
 
 | Step | Environment | Python |
 |------|-------------|--------|
-| SAMPart3D | `p3sam` | `/home/rui/miniconda3/envs/p3sam/bin/python` |
+| SAMPart3D | `part` | `/home/rui/miniconda3/envs/part/bin/python` |
 | HoloPart | `holopart` | `/home/rui/miniconda3/envs/holopart/bin/python` |
 
 This satisfies ENV-01 and ENV-02: the shared-env feasibility has been checked, and the fallback keeps one PartPipeline command as the user-facing interface.
@@ -25,14 +25,14 @@ No conda environments were mutated. No heavy model inference, training, renderin
 
 The generated JSON probe outputs are local runtime artifacts:
 
-- `outputs/env_probe/p3sam.json`
+- `outputs/env_probe/part.json`
 - `outputs/env_probe/holopart.json`
 
 `outputs/` is intentionally gitignored, so this document captures the durable decision.
 
 ## Environment Inventory
 
-| Item | `p3sam` | `holopart` |
+| Item | `part` | `holopart` |
 |------|---------|------------|
 | Python | 3.10.20 | 3.10.20 |
 | PyTorch | 2.4.0+cu124 | 2.1.0+cu121 |
@@ -50,7 +50,7 @@ The generated JSON probe outputs are local runtime artifacts:
 
 ## Smoke Test Results
 
-| Smoke test | `p3sam` | `holopart` |
+| Smoke test | `part` | `holopart` |
 |------------|---------|------------|
 | SAMPart3D runner `--help` | pass | pass |
 | SAMPart3D core import | fail: `libnvrtc.so.12` not on loader path | fail: missing `pointops` |
@@ -59,7 +59,7 @@ The generated JSON probe outputs are local runtime artifacts:
 
 Important notes:
 
-- `p3sam` is closer to SAMPart3D because it has `torch_scatter` for PyTorch 2.4/CUDA 12.4 and already has the SAMPart3D runner in the fork.
+- `part` is closer to SAMPart3D because it has `torch_scatter` for PyTorch 2.4/CUDA 12.4 and already has the SAMPart3D runner in the fork.
 - `holopart` is the correct HoloPart runtime because HoloPart imports and CLI help both pass there.
 - A single shared environment would need to reconcile different PyTorch/CUDA compiled extension stacks: `torch_scatter` for PyTorch 2.4/CUDA 12.4 versus `torch_cluster` for PyTorch 2.1/CUDA 12.1.
 
@@ -81,8 +81,8 @@ Later phases should implement subprocess execution with this contract:
 | Field | SAMPart3D | HoloPart |
 |-------|-----------|----------|
 | repo | `third_party/SAMPart3D` | `third_party/HoloPart` |
-| env | `p3sam` | `holopart` |
-| python | `/home/rui/miniconda3/envs/p3sam/bin/python` | `/home/rui/miniconda3/envs/holopart/bin/python` |
+| env | `part` | `holopart` |
+| python | `/home/rui/miniconda3/envs/part/bin/python` | `/home/rui/miniconda3/envs/holopart/bin/python` |
 | cwd | repo root | repo root |
 | logs | per-run output folder | per-run output folder |
 
@@ -99,7 +99,7 @@ Errors should surface enough context for the user to rerun the failing command m
 
 ## Follow-Up For Later Phases
 
-- Phase 3 should add a SAMPart3D command runner using `p3sam`.
+- Phase 3 should add a SAMPart3D command runner using `part`.
 - Phase 4 should remain environment-light and use whichever PartPipeline environment is active for mesh/mask conversion.
 - Phase 5 should add a HoloPart command runner using `holopart`.
 - A future cleanup phase may revisit a shared environment after the full pipeline works end to end.
