@@ -1,18 +1,43 @@
-sampart3d:
-  repo: third_party/SAMPart3D
-  env: p3sam
-  python: /home/rui/miniconda3/envs/p3sam/bin/python
-  default_mask_scale: "1.0"
-
-holopart:
-  repo: third_party/HoloPart
-  env: holopart
-  python: /home/rui/miniconda3/envs/holopart/bin/python
+active_profile: local_wsl
 
 environment:
   strategy: dispatcher
   shared_env_feasible: false
   rationale: "SAMPart3D and HoloPart currently require different PyTorch/CUDA extension stacks."
 
-outputs:
+pipeline:
+  default_mask_scale: "1.0"
   keep_intermediates: true
+
+profiles:
+  local_wsl:
+    project_root: /home/rui/of_work/code/PartPipeline
+    output_root: outputs/runs
+    sampart3d:
+      repo: third_party/SAMPart3D
+      env: p3sam
+      python: /home/rui/miniconda3/envs/p3sam/bin/python
+      default_mask_scale: "1.0"
+    holopart:
+      repo: third_party/HoloPart
+      env: holopart
+      python: /home/rui/miniconda3/envs/holopart/bin/python
+
+  server:
+    project_root: /server/path/placeholder/PartPipeline
+    output_root: outputs/server-runs
+    filesystem_paths_are_placeholders: true
+    ssh:
+      host_alias: d5
+      hostname: 10.1.6.8
+      user: qzqd5
+      port: 19091
+    sampart3d:
+      repo: third_party/SAMPart3D
+      env: p3sam
+      python: /server/path/placeholder/miniconda3/envs/p3sam/bin/python
+      default_mask_scale: "1.0"
+    holopart:
+      repo: third_party/HoloPart
+      env: holopart
+      python: /server/path/placeholder/miniconda3/envs/holopart/bin/python

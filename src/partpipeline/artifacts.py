@@ -1,0 +1,59 @@
+from __future__ import annotations
+
+import json
+import re
+from dataclasses import replace
+from datetime import datetime
+from pathlib import Path
+
+from partpipeline.types import RunManifest, RunPaths
+
+
+def create_run_paths(
+    input_path: Path,
+    output_root: Path,
+    timestamp: str | None = None,
+) -> RunPaths:
+    stamp = timestamp or datetime.now().strftime("%Y%m%d-%H%M%S")
+    run_dir = output_root.expanduser().resolve() / f"{_safe_stem(input_path)}-{stamp}"
+    logs_dir = run_dir / "logs"
+    sam_dir = run_dir / "sam"
+    prepared_dir = run_dir / "prepared"
+    holopart_dir = run_dir / "holopart"
+
+    for directory in (logs_dir, sam_dir, prepared_dir, holopart_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+
+    return RunPaths(
+        run_dir=run_dir,
+        logs_dir=logs_dir,
+        sam_dir=sam_dir,
+        prepared_dir=prepared_dir,
+        holopart_dir=holopart_dir,
+        manifest_path=run_dir / "manifest.json",
+    )
+
+
+def write_manifest(manifest: RunManifest) -> Path:
+    manifest.paths.manifest_path.write_text(
+        json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return manifest.paths.manifest_path
+
+
+def update_manifest_status(manifest: RunManifest, status: str) -> RunManifest:
+    updated = replace(
+        manifest,
+        status=status,
+        updated_at=datetime.now().isoformat(timespec="seconds"),
+    )
+    write_manifest(updated)
+    return updated
+
+
+def _safe_stem(path: Path) -> str:
+    stem = path.stem.strip().lower()
+    stem = re.sub(r"[^a-z0-9._-]+", "-", stem)
+    stem = stem.strip("-._")
+    return stem or "asset"

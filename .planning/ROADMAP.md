@@ -22,6 +22,7 @@
 
 ### Phase 3: Runtime Configuration and Layered Core
 **Goal:** Build the profile-based configuration, layered runtime core, artifact layout, and manifest/runner contracts without executing model pipelines.
+**Status:** Complete (2026-05-15)
 **Mode:** mvp
 **Requirements:** CLI-01, CLI-02, CLI-03, OUT-01, ENV-02
 **Success Criteria**:
