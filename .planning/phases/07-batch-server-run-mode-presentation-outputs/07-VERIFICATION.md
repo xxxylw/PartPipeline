@@ -114,12 +114,41 @@ batch manifest 中每个 item 记录了：
 
 说明生成输入和输出没有被加入 git。
 
-## 未执行的真实长耗时验证
+## 真实长耗时验证
 
-本次没有运行：
+后续补充执行了真实模型批处理：
 
 ```bash
 PYTHONPATH=src /home/rui/miniconda3/envs/part/bin/python -m partpipeline.cli batch inputs/phase7 --limit 1
 ```
 
-原因：真实批处理会启动 SAMPart3D 和 HoloPart，耗时和资源占用明显高于 dry-run。Phase 7 已经验证批处理入口、路径管理和 manifest 生成；真实模型批量跑样本可以在下一步单独启动。
+结果：
+
+```text
+Profile: local_wsl
+Status: complete
+Total: 1
+Succeeded: 1
+Failed: 0
+Batch manifest: /home/rui/of_work/code/PartPipeline/outputs/runs/batches/batch-20260518-190552/batch_manifest.json
+```
+
+真实样本：
+
+```text
+asset_name=02.香叶天竺葵01.glb
+run_dir=/home/rui/of_work/code/PartPipeline/outputs/runs/02.-01-20260518-190552
+item_status=holopart_complete
+run_status=holopart_complete
+```
+
+最终 HoloPart 输出：
+
+```text
+output_glb=/home/rui/of_work/code/PartPipeline/outputs/runs/02.-01-20260518-190552/holopart/output.glb
+output_size=1054224
+loaded_type=Scene
+geometry_count=5
+```
+
+说明：`output.glb` 已用 `trimesh.load(..., force="scene")` 验证可加载。该真实批处理运行启动了 SAMPart3D、bridge 和 HoloPart，最终 batch 状态为 `complete`。
