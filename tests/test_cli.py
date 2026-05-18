@@ -18,6 +18,33 @@ from partpipeline.cli import app
 
 
 class CliTests(unittest.TestCase):
+    def test_stage_inputs_command_copies_glbs(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            source = temp_root / "source"
+            destination = temp_root / "inputs" / "phase7"
+            source.mkdir()
+            (source / "01.测试 sofa.glb").write_bytes(b"glb")
+            (source / "ignore.txt").write_text("x", encoding="utf-8")
+
+            result = CliRunner().invoke(
+                app,
+                [
+                    "stage-inputs",
+                    str(source),
+                    "--destination",
+                    str(destination),
+                    "--limit",
+                    "1",
+                ],
+            )
+
+            self.assertEqual(result.exit_code, 0, result.output)
+            self.assertIn("GLB count: 1", result.output)
+            self.assertIn("Input manifest:", result.output)
+            self.assertTrue((destination / "01.测试 sofa.glb").exists())
+            self.assertTrue((destination / "input_manifest.json").exists())
+
     def test_run_command_writes_manifest_and_applies_mask_override(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_root = Path(temp_dir)
@@ -72,8 +99,9 @@ class CliTests(unittest.TestCase):
 
             self.assertEqual(result.exit_code, 0, result.output)
             self.assertIn("Profile: local_wsl", result.output)
-            self.assertIn("GLB count: 2", result.output)
-            self.assertIn("Dry run: True", result.output)
+            self.assertIn("Status: dry_run", result.output)
+            self.assertIn("Total: 2", result.output)
+            self.assertIn("Batch manifest:", result.output)
 
     def test_bridge_command_converts_existing_run(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
