@@ -63,6 +63,40 @@ class RunRequest:
 
 
 @dataclass(frozen=True)
+class StagedInputItem:
+    source_path: Path
+    staged_path: Path
+    asset_name: str
+    size_bytes: int
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "source_path": str(self.source_path),
+            "staged_path": str(self.staged_path),
+            "asset_name": self.asset_name,
+            "size_bytes": self.size_bytes,
+        }
+
+
+@dataclass(frozen=True)
+class InputManifest:
+    source_dir: Path
+    destination_dir: Path
+    created_at: str
+    items: list[StagedInputItem]
+    manifest_path: Path
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "source_dir": str(self.source_dir),
+            "destination_dir": str(self.destination_dir),
+            "created_at": self.created_at,
+            "items": [item.to_dict() for item in self.items],
+            "manifest_path": str(self.manifest_path),
+        }
+
+
+@dataclass(frozen=True)
 class RunPaths:
     run_dir: Path
     logs_dir: Path
@@ -245,6 +279,71 @@ class HoloPartResult:
             "paths": self.paths.to_dict(),
             "output_glb": str(self.paths.output_glb),
             "command": self.command.to_dict(),
+        }
+
+
+@dataclass(frozen=True)
+class BatchItemResult:
+    asset_name: str
+    input_path: Path
+    source_path: Path | None
+    run_dir: Path | None
+    manifest_path: Path | None
+    status: str
+    error: dict[str, str] | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "asset_name": self.asset_name,
+            "input_path": str(self.input_path),
+            "source_path": str(self.source_path) if self.source_path is not None else None,
+            "run_dir": str(self.run_dir) if self.run_dir is not None else None,
+            "manifest_path": str(self.manifest_path) if self.manifest_path is not None else None,
+            "status": self.status,
+            "error": self.error,
+        }
+
+
+@dataclass(frozen=True)
+class BatchManifest:
+    batch_id: str
+    profile: str
+    input_dir: Path
+    output_root: Path
+    mask_scale: str
+    status: str
+    created_at: str
+    updated_at: str
+    items: list[BatchItemResult]
+    manifest_path: Path
+
+    @property
+    def total(self) -> int:
+        return len(self.items)
+
+    @property
+    def succeeded(self) -> int:
+        return sum(1 for item in self.items if item.status == "holopart_complete")
+
+    @property
+    def failed(self) -> int:
+        return sum(1 for item in self.items if item.status == "failed")
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "batch_id": self.batch_id,
+            "profile": self.profile,
+            "input_dir": str(self.input_dir),
+            "output_root": str(self.output_root),
+            "mask_scale": self.mask_scale,
+            "status": self.status,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "total": self.total,
+            "succeeded": self.succeeded,
+            "failed": self.failed,
+            "items": [item.to_dict() for item in self.items],
+            "manifest_path": str(self.manifest_path),
         }
 
 

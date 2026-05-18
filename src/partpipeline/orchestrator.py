@@ -4,7 +4,9 @@ from datetime import datetime
 import json
 from pathlib import Path
 
-from partpipeline.artifacts import create_run_paths, write_manifest
+from dataclasses import replace
+
+from partpipeline.artifacts import create_batch_dir, create_run_paths, write_batch_manifest, write_manifest
 from partpipeline.bridge import BridgeConversionError, BridgeConverter
 from partpipeline.config import load_config, resolve_profile
 from partpipeline.runners.sampart3d import (
@@ -17,7 +19,21 @@ from partpipeline.runners.holopart import (
     HoloPartPreflightError,
     HoloPartRunner,
 )
-from partpipeline.types import BridgeResult, CommandResult, HoloPartResult, RunManifest, RunPaths, RunRequest, RuntimeProfile
+from partpipeline.types import (
+    BatchItemResult,
+    BatchManifest,
+    BridgeResult,
+    CommandResult,
+    HoloPartResult,
+    RunManifest,
+    RunPaths,
+    RunRequest,
+    RuntimeProfile,
+)
+
+
+class BatchExecutionError(RuntimeError):
+    pass
 
 
 def prepare_single_run(
@@ -274,6 +290,103 @@ def run_holopart_for_existing_run(
     )
 
 
+def run_batch_pipeline(
+    input_dir: Path,
+    config_path: Path,
+    profile_name: str | None = None,
+    output_dir: Path | None = None,
+    mask_scale: str | None = None,
+    dry_run: bool = False,
+    limit: int | None = None,
+    continue_on_error: bool = True,
+    run_holopart: bool = True,
+    single_run_func=None,
+    holopart_func=None,
+) -> BatchManifest:
+    input_dir = input_dir.expanduser().resolve()
+    if not input_dir.exists():
+        raise BatchExecutionError(f"Batch input directory does not exist: {input_dir}")
+    if not input_dir.is_dir():
+        raise BatchExecutionError(f"Batch input path is not a directory: {input_dir}")
+
+    config = load_config(config_path)
+    profile = resolve_profile(config, profile_name)
+    output_root = (output_dir or profile.output_root).expanduser().resolve()
+    resolved_mask_scale = mask_scale or config.default_mask_scale
+    glbs = sorted(path for path in input_dir.glob("*.glb") if path.is_file())
+    if limit is not None:
+        glbs = glbs[:limit]
+
+    created_at = datetime.now().isoformat(timespec="seconds")
+    batch_dir = create_batch_dir(output_root)
+    manifest = BatchManifest(
+        batch_id=batch_dir.name,
+        profile=profile.name,
+        input_dir=input_dir,
+        output_root=output_root,
+        mask_scale=resolved_mask_scale,
+        status="empty",
+        created_at=created_at,
+        updated_at=created_at,
+        items=[],
+        manifest_path=batch_dir / "batch_manifest.json",
+    )
+    write_batch_manifest(manifest)
+
+    source_paths = _input_manifest_sources(input_dir)
+    run_single = single_run_func or prepare_single_run
+    run_completion = holopart_func or run_holopart_for_existing_run
+
+    items: list[BatchItemResult] = []
+    for glb in glbs:
+        try:
+            run_manifest = run_single(
+                RunRequest(
+                    input_path=glb,
+                    config_path=config_path,
+                    profile_name=profile.name,
+                    output_dir=output_root,
+                    mask_scale=resolved_mask_scale,
+                    dry_run=dry_run,
+                )
+            )
+            final_manifest = run_manifest
+            if not dry_run and run_holopart:
+                final_manifest = run_completion(run_manifest.run_dir, config_path, profile.name)
+            item = BatchItemResult(
+                asset_name=glb.name,
+                input_path=glb,
+                source_path=source_paths.get(glb.resolve()),
+                run_dir=final_manifest.run_dir,
+                manifest_path=final_manifest.paths.manifest_path,
+                status=final_manifest.status,
+            )
+        except Exception as exc:
+            item = BatchItemResult(
+                asset_name=glb.name,
+                input_path=glb,
+                source_path=source_paths.get(glb.resolve()),
+                run_dir=None,
+                manifest_path=None,
+                status="failed",
+                error={"type": exc.__class__.__name__, "message": str(exc)},
+            )
+            items.append(item)
+            manifest = _batch_manifest_with_items(manifest, items, dry_run)
+            write_batch_manifest(manifest)
+            if not continue_on_error:
+                return manifest
+            continue
+
+        items.append(item)
+        manifest = _batch_manifest_with_items(manifest, items, dry_run)
+        write_batch_manifest(manifest)
+
+    manifest = _batch_manifest_with_items(manifest, items, dry_run)
+    write_batch_manifest(manifest)
+    return manifest
+
+
 def _failure_manifest(
     input_path,
     profile_name: str,
@@ -304,6 +417,43 @@ def _failure_manifest(
             "issues": issues or [],
         },
     )
+
+
+def _input_manifest_sources(input_dir: Path) -> dict[Path, Path]:
+    manifest_path = input_dir / "input_manifest.json"
+    if not manifest_path.exists():
+        return {}
+    data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    sources: dict[Path, Path] = {}
+    for item in data.get("items", []):
+        staged = item.get("staged_path")
+        source = item.get("source_path")
+        if staged and source:
+            sources[Path(staged).expanduser().resolve()] = Path(source).expanduser()
+    return sources
+
+
+def _batch_manifest_with_items(manifest: BatchManifest, items: list[BatchItemResult], dry_run: bool) -> BatchManifest:
+    return replace(
+        manifest,
+        items=list(items),
+        status=_batch_status(items, dry_run),
+        updated_at=datetime.now().isoformat(timespec="seconds"),
+    )
+
+
+def _batch_status(items: list[BatchItemResult], dry_run: bool) -> str:
+    if not items:
+        return "empty"
+    if dry_run:
+        return "dry_run"
+    succeeded = sum(1 for item in items if item.status == "holopart_complete")
+    failed = sum(1 for item in items if item.status == "failed")
+    if succeeded and failed:
+        return "partial"
+    if failed == len(items):
+        return "failed"
+    return "complete"
 
 
 def _source_glb_for_bridge(paths, result) -> Path:

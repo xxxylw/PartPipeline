@@ -7,13 +7,34 @@ import typer
 
 from partpipeline.config import load_config, resolve_profile
 from partpipeline.bridge import BridgeConversionError
-from partpipeline.orchestrator import bridge_existing_run, prepare_single_run, run_holopart_for_existing_run
+from partpipeline.inputs import stage_glb_inputs
+from partpipeline.orchestrator import (
+    BatchExecutionError,
+    bridge_existing_run,
+    prepare_single_run,
+    run_batch_pipeline,
+    run_holopart_for_existing_run,
+)
 from partpipeline.runners.holopart import HoloPartExecutionError, HoloPartPreflightError
 from partpipeline.runners.sampart3d import Sampart3DExecutionError, Sampart3DPreflightError
 from partpipeline.types import RunRequest
 
 
 app = typer.Typer(help="PartPipeline runtime for GLB part segmentation workflows.")
+
+
+@app.command("stage-inputs")
+def stage_inputs(
+    source_dir: Path = typer.Argument(..., exists=True, file_okay=False, dir_okay=True),
+    destination: Path = typer.Option(Path("inputs/phase7"), "--destination"),
+    limit: Optional[int] = typer.Option(None, "--limit"),
+) -> None:
+    """Copy GLB inputs into a PartPipeline-managed input directory."""
+    manifest = stage_glb_inputs(source_dir, destination, limit)
+    typer.echo(f"Source: {manifest.source_dir}")
+    typer.echo(f"Destination: {manifest.destination_dir}")
+    typer.echo(f"GLB count: {len(manifest.items)}")
+    typer.echo(f"Input manifest: {manifest.manifest_path}")
 
 
 @app.command()
@@ -106,18 +127,35 @@ def batch(
     output_dir: Optional[Path] = typer.Option(None, "--output-dir", "-o"),
     config: Path = typer.Option(Path("configs/default.yaml"), "--config", "-c"),
     profile: Optional[str] = typer.Option(None, "--profile", "-p"),
+    mask_scale: Optional[str] = typer.Option(None, "--mask-scale"),
     dry_run: bool = typer.Option(False, "--dry-run"),
+    limit: Optional[int] = typer.Option(None, "--limit"),
+    stop_on_error: bool = typer.Option(False, "--stop-on-error"),
+    skip_holopart: bool = typer.Option(False, "--skip-holopart"),
 ) -> None:
-    """Inspect a directory of GLBs using the selected runtime profile."""
-    runtime_config = load_config(config)
-    runtime_profile = resolve_profile(runtime_config, profile)
-    glbs = sorted(input_dir.glob("*.glb"))
-    destination = output_dir or runtime_profile.output_root
+    """Run a directory of GLBs through the PartPipeline workflow."""
+    try:
+        manifest = run_batch_pipeline(
+            input_dir,
+            config,
+            profile,
+            output_dir=output_dir,
+            mask_scale=mask_scale,
+            dry_run=dry_run,
+            limit=limit,
+            continue_on_error=not stop_on_error,
+            run_holopart=not skip_holopart,
+        )
+    except BatchExecutionError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from exc
 
-    typer.echo(f"Profile: {runtime_profile.name}")
-    typer.echo(f"GLB count: {len(glbs)}")
-    typer.echo(f"Output root: {destination}")
-    typer.echo(f"Dry run: {dry_run}")
+    typer.echo(f"Profile: {manifest.profile}")
+    typer.echo(f"Status: {manifest.status}")
+    typer.echo(f"Total: {manifest.total}")
+    typer.echo(f"Succeeded: {manifest.succeeded}")
+    typer.echo(f"Failed: {manifest.failed}")
+    typer.echo(f"Batch manifest: {manifest.manifest_path}")
 
 
 if __name__ == "__main__":
