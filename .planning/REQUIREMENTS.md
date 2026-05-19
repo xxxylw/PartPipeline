@@ -35,7 +35,7 @@
 ## v2 Requirements
 
 - [ ] Auto-select the best SAMPart3D scale based on part count or quality heuristics.
-- [ ] **V2-PRESENTATION-REPORT**: Generate visual previews, an HTML report, or another lightweight presentation index for review/demo workflows.
+- [ ] **V2-PRESENTATION-REPORT**: Generate visual previews, animation/video assets, an HTML report, or another lightweight presentation index for review/demo workflows.
 - [ ] Add resumable batch runs with retry controls.
 
 ## Out of Scope

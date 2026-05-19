@@ -5,7 +5,7 @@
 See: `.planning/PROJECT.md` (updated 2026-05-15)
 
 **Core value:** A user can provide one `.glb` or a folder of `.glb` files and receive organized, presentation-ready segmented and completed part outputs.
-**Current focus:** Phase 9 planned next - Presentation Materials and Per-Part Exports
+**Current focus:** Phase 9 planned next - Exploded Assembly Presentation Video
 
 ## Last Session
 
@@ -19,6 +19,7 @@ Completed Phase 8 presentation packaging. PartPipeline now has `package` and `pa
 - Phase 8 planned: Presentation package commands will produce `presentation_manifest.json` and `presentation_batch_manifest.json`, defaulting to Level A and requiring explicit opt-in for Level B and original GLB copying.
 - Phase 8 complete: presentation packaging writes `level_a_segmented_parts.glb`, optional `level_b_holopart_output.glb`, `part_manifest.json`, and presentation manifests.
 - Phase 9 added: Presentation Materials and Per-Part Exports, focused on turning the Level A package into richer review/reporting materials.
+- Phase 9 refined: the key presentation deliverable should be an exploded-assembly animation/video where segmented Level A parts slide outward from the assembled model center and then slide back into place.
 
 ### Prior Verification Anchors
 
