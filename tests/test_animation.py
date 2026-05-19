@@ -156,6 +156,42 @@ class AnimationExportTests(unittest.TestCase):
             self.assertTrue(any("--python" in command for command in commands))
             self.assertTrue(any("-framerate" in command for command in commands))
 
+    def test_render_defaults_to_smooth_presentation_frame_count(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            package_dir = make_package(root)
+            blender = root / "blender"
+            ffmpeg = root / "ffmpeg"
+            blender.write_text("", encoding="utf-8")
+            ffmpeg.write_text("", encoding="utf-8")
+
+            def fake_runner(command: Sequence[str], **kwargs):
+                command_list = [str(value) for value in command]
+                if command_list[1:] == ["--version"]:
+                    return FakeResult(stdout="Blender 4.5.0\n")
+                if command_list[1:] == ["-version"]:
+                    return FakeResult(stdout="ffmpeg version 8.0.1\n")
+                if "--python" in command_list:
+                    frames = package_dir / "animation" / "frames"
+                    frames.mkdir(parents=True, exist_ok=True)
+                    (frames / "frame_0001.png").write_bytes(b"png")
+                    return FakeResult()
+                if "-framerate" in command_list:
+                    (package_dir / "animation" / "exploded_assembly.mp4").write_bytes(b"mp4")
+                    return FakeResult()
+                return FakeResult()
+
+            manifest = render_exploded_animation(
+                package_dir,
+                blender_path=blender,
+                ffmpeg_path=ffmpeg,
+                runner=fake_runner,
+            )
+
+            self.assertEqual(manifest.duration_seconds, 5.0)
+            self.assertEqual(manifest.fps, 24)
+            self.assertEqual(manifest.frame_count, 120)
+
 
 if __name__ == "__main__":
     unittest.main()

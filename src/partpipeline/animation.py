@@ -75,7 +75,7 @@ def render_exploded_animation(
     *,
     blender_path: Path | None = None,
     ffmpeg_path: Path | None = None,
-    duration_seconds: float = 4.0,
+    duration_seconds: float = 5.0,
     fps: int = 24,
     width: int = 1280,
     height: int = 720,

@@ -42,8 +42,10 @@ def main() -> None:
     span = _scene_span(display_objects)
     distance = max(span.x, span.y, span.z, 1.0) * float(job["explode_scale"])
     frame_count = int(job["frame_count"])
-    explode_frame = max(2, int(frame_count * 0.35))
-    hold_frame = max(explode_frame + 1, int(frame_count * 0.65))
+    move_start_frame = max(2, int(frame_count * 0.12))
+    explode_frame = max(move_start_frame + 1, int(frame_count * 0.44))
+    hold_frame = max(explode_frame + 1, int(frame_count * 0.64))
+    return_frame = max(hold_frame + 1, int(frame_count * 0.96))
     rotation = math.radians(float(job["rotation_degrees"]))
     exploded_points = []
 
@@ -64,9 +66,12 @@ def main() -> None:
             exploded_points.extend(_translated_bounds(obj, exploded_location - origin_location))
 
         _keyframe(obj, 1, origin_location, origin_rotation)
+        _keyframe(obj, move_start_frame, origin_location, origin_rotation)
         _keyframe(obj, explode_frame, exploded_location, exploded_rotation)
         _keyframe(obj, hold_frame, exploded_location, exploded_rotation)
+        _keyframe(obj, return_frame, origin_location, origin_rotation)
         _keyframe(obj, frame_count, origin_location, origin_rotation)
+        _smooth_animation(obj)
 
     shot_center, shot_span = _shot_bounds(display_objects, exploded_points)
     _setup_camera(shot_center, shot_span, job)
@@ -165,6 +170,17 @@ def _keyframe(obj, frame: int, location: Vector, rotation) -> None:
     obj.keyframe_insert(data_path="rotation_euler", frame=frame)
 
 
+def _smooth_animation(obj) -> None:
+    if obj.animation_data is None or obj.animation_data.action is None:
+        return
+    for curve in obj.animation_data.action.fcurves:
+        for keyframe in curve.keyframe_points:
+            keyframe.interpolation = "BEZIER"
+            keyframe.easing = "EASE_IN_OUT"
+            keyframe.handle_left_type = "AUTO_CLAMPED"
+            keyframe.handle_right_type = "AUTO_CLAMPED"
+
+
 def _assign_segmentation_materials(objects: list) -> None:
     for index, obj in enumerate(sorted(objects, key=lambda item: item.name)):
         material = bpy.data.materials.new(f"segmentation_part_{index + 1:03d}")
@@ -203,7 +219,7 @@ def _setup_lighting(center: Vector, diagonal: float) -> None:
     bpy.context.collection.objects.link(light)
     distance = max(diagonal, 1.0) * 1.2
     light.location = center + Vector((distance, -distance * 0.8, distance * 1.2))
-    light_data.energy = 360
+    light_data.energy = 300
     light_data.size = max(diagonal * 0.9, 1.0)
 
 
@@ -237,7 +253,7 @@ def _setup_render(job: dict) -> None:
     scene.render.image_settings.file_format = "PNG"
     scene.view_settings.view_transform = "Standard"
     scene.view_settings.look = "Medium High Contrast"
-    scene.view_settings.exposure = -1.25
+    scene.view_settings.exposure = -1.8
     scene.view_settings.gamma = 1.0
     scene.render.film_transparent = False
 
