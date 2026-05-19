@@ -5,6 +5,7 @@ from typing import Optional
 
 import typer
 
+from partpipeline.animation import AnimationGenerationError, render_exploded_animation
 from partpipeline.config import load_config, resolve_profile
 from partpipeline.bridge import BridgeConversionError
 from partpipeline.inputs import stage_glb_inputs
@@ -189,6 +190,16 @@ def package_batch_command(
     presentation_dir: Path = typer.Option(Path("outputs/presentation"), "--presentation-dir"),
     include_level_b: bool = typer.Option(False, "--include-level-b"),
     include_original: bool = typer.Option(False, "--include-original"),
+    generate_animation: bool = typer.Option(False, "--generate-animation"),
+    config: Path = typer.Option(Path("configs/default.yaml"), "--config", "-c"),
+    blender_path: Optional[Path] = typer.Option(None, "--blender-path"),
+    ffmpeg_path: Optional[Path] = typer.Option(None, "--ffmpeg-path"),
+    duration_seconds: Optional[float] = typer.Option(None, "--duration-seconds"),
+    fps: Optional[int] = typer.Option(None, "--fps"),
+    width: Optional[int] = typer.Option(None, "--width"),
+    height: Optional[int] = typer.Option(None, "--height"),
+    explode_scale: Optional[float] = typer.Option(None, "--explode-scale"),
+    rotation_degrees: Optional[float] = typer.Option(None, "--rotation-degrees"),
 ) -> None:
     """Package all usable runs from a batch manifest into presentation-ready outputs."""
     try:
@@ -197,8 +208,22 @@ def package_batch_command(
             presentation_dir,
             include_level_b=include_level_b,
             include_original=include_original,
+            generate_animation=generate_animation,
+            animation_options=_animation_options_from_cli(
+                config=config,
+                blender_path=blender_path,
+                ffmpeg_path=ffmpeg_path,
+                duration_seconds=duration_seconds,
+                fps=fps,
+                width=width,
+                height=height,
+                explode_scale=explode_scale,
+                rotation_degrees=rotation_degrees,
+            )
+            if generate_animation
+            else None,
         )
-    except PresentationPackagingError as exc:
+    except (PresentationPackagingError, AnimationGenerationError) as exc:
         typer.echo(f"Error: {exc}", err=True)
         raise typer.Exit(1) from exc
 
@@ -207,6 +232,98 @@ def package_batch_command(
     typer.echo(f"Total: {manifest.total}")
     typer.echo(f"Packaged: {manifest.packaged}")
     typer.echo(f"Failed: {manifest.failed}")
+
+
+@app.command("animate")
+def animate(
+    package_dir: Path = typer.Argument(..., exists=True, file_okay=False, dir_okay=True),
+    config: Path = typer.Option(Path("configs/default.yaml"), "--config", "-c"),
+    blender_path: Optional[Path] = typer.Option(None, "--blender-path"),
+    ffmpeg_path: Optional[Path] = typer.Option(None, "--ffmpeg-path"),
+    duration_seconds: Optional[float] = typer.Option(None, "--duration-seconds"),
+    fps: Optional[int] = typer.Option(None, "--fps"),
+    width: Optional[int] = typer.Option(None, "--width"),
+    height: Optional[int] = typer.Option(None, "--height"),
+    explode_scale: Optional[float] = typer.Option(None, "--explode-scale"),
+    rotation_degrees: Optional[float] = typer.Option(None, "--rotation-degrees"),
+) -> None:
+    """Export per-part GLBs and render an exploded assembly MP4 for a Level A package."""
+    try:
+        manifest = render_exploded_animation(
+            package_dir,
+            **_animation_options_from_cli(
+                config=config,
+                blender_path=blender_path,
+                ffmpeg_path=ffmpeg_path,
+                duration_seconds=duration_seconds,
+                fps=fps,
+                width=width,
+                height=height,
+                explode_scale=explode_scale,
+                rotation_degrees=rotation_degrees,
+            ),
+        )
+    except AnimationGenerationError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from exc
+
+    typer.echo(f"Package directory: {manifest.package_dir}")
+    typer.echo(f"Animation directory: {manifest.animation_dir}")
+    typer.echo(f"Parts manifest: {manifest.part_manifest}")
+    typer.echo(f"Video: {manifest.video_path}")
+    typer.echo(f"Animation manifest: {manifest.manifest_path}")
+    typer.echo(f"Frame count: {manifest.frame_count}")
+    typer.echo(f"Part count: {_part_count_from_manifest(manifest.part_manifest)}")
+
+
+def _animation_options_from_cli(
+    *,
+    config: Path,
+    blender_path: Optional[Path],
+    ffmpeg_path: Optional[Path],
+    duration_seconds: Optional[float],
+    fps: Optional[int],
+    width: Optional[int],
+    height: Optional[int],
+    explode_scale: Optional[float] = None,
+    rotation_degrees: Optional[float] = None,
+) -> dict[str, object]:
+    config_data = load_config(config)
+    animation = config_data.raw.get("pipeline", {}).get("animation", {})
+    options: dict[str, object] = {
+        "blender_path": Path(animation.get("blender", "blender")),
+        "ffmpeg_path": Path(animation.get("ffmpeg", "ffmpeg")),
+        "duration_seconds": float(animation.get("default_duration_seconds", 4.0)),
+        "fps": int(animation.get("fps", 24)),
+        "width": int(animation.get("width", 1280)),
+        "height": int(animation.get("height", 720)),
+        "explode_scale": float(animation.get("explode_scale", 1.25)),
+        "rotation_degrees": float(animation.get("rotation_degrees", 15.0)),
+    }
+    if blender_path is not None:
+        options["blender_path"] = blender_path
+    if ffmpeg_path is not None:
+        options["ffmpeg_path"] = ffmpeg_path
+    if duration_seconds is not None:
+        options["duration_seconds"] = duration_seconds
+    if fps is not None:
+        options["fps"] = fps
+    if width is not None:
+        options["width"] = width
+    if height is not None:
+        options["height"] = height
+    if explode_scale is not None:
+        options["explode_scale"] = explode_scale
+    if rotation_degrees is not None:
+        options["rotation_degrees"] = rotation_degrees
+    return options
+
+
+def _part_count_from_manifest(path: Path) -> int:
+    import json
+
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return int(data.get("total", 0))
 
 
 if __name__ == "__main__":

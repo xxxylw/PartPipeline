@@ -7,7 +7,15 @@ from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 
-from partpipeline.types import BatchManifest, PresentationBatchManifest, PresentationPackageManifest, RunManifest, RunPaths
+from partpipeline.types import (
+    AnimationManifest,
+    BatchManifest,
+    PartExportManifest,
+    PresentationBatchManifest,
+    PresentationPackageManifest,
+    RunManifest,
+    RunPaths,
+)
 
 
 def create_run_paths(
@@ -94,6 +102,38 @@ def write_presentation_manifest(manifest: PresentationPackageManifest) -> Path:
 
 
 def write_presentation_batch_manifest(manifest: PresentationBatchManifest) -> Path:
+    manifest.manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest.manifest_path.write_text(
+        json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return manifest.manifest_path
+
+
+def animation_artifact_paths(package_dir: Path) -> dict[str, Path]:
+    package_dir = package_dir.expanduser().resolve()
+    animation_dir = package_dir / "animation"
+    return {
+        "animation_dir": animation_dir,
+        "frames_dir": animation_dir / "frames",
+        "video_path": animation_dir / "exploded_assembly.mp4",
+        "manifest_path": animation_dir / "animation_manifest.json",
+        "job_path": animation_dir / "blender_job.json",
+        "parts_dir": package_dir / "parts",
+        "parts_manifest": package_dir / "parts" / "parts_manifest.json",
+    }
+
+
+def write_part_export_manifest(manifest: PartExportManifest) -> Path:
+    manifest.manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest.manifest_path.write_text(
+        json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return manifest.manifest_path
+
+
+def write_animation_manifest(manifest: AnimationManifest) -> Path:
     manifest.manifest_path.parent.mkdir(parents=True, exist_ok=True)
     manifest.manifest_path.write_text(
         json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False) + "\n",

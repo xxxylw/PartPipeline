@@ -197,6 +197,37 @@ class PresentationPackagingTests(unittest.TestCase):
             self.assertTrue((root / "presentation" / "presentation_batch_manifest.json").exists())
             self.assertTrue((manifest.items[0].package_dir / "level_a_segmented_parts.glb").exists())
 
+    def test_package_batch_can_generate_animation_for_each_package(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            run_dir = make_run(root, "asset-a-run")
+            batch_dir = root / "runs" / "batches" / "batch-test"
+            batch_dir.mkdir(parents=True)
+            batch_manifest = batch_dir / "batch_manifest.json"
+            batch_manifest.write_text(
+                json.dumps({"items": [{"asset_name": "a.glb", "manifest_path": str(run_dir / "manifest.json")}]}),
+                encoding="utf-8",
+            )
+
+            def fake_animation(package_dir: Path, **kwargs):
+                video = package_dir / "animation" / "exploded_assembly.mp4"
+                manifest_path = package_dir / "animation" / "animation_manifest.json"
+                video.parent.mkdir(parents=True, exist_ok=True)
+                video.write_bytes(b"mp4")
+                manifest_path.write_text("{}", encoding="utf-8")
+                return type("FakeAnimation", (), {"manifest_path": manifest_path, "video_path": video})()
+
+            manifest = package_batch(
+                batch_manifest,
+                root / "presentation",
+                generate_animation=True,
+                animation_func=fake_animation,
+            )
+
+            self.assertEqual(manifest.packaged, 1)
+            self.assertEqual(manifest.items[0].status, "packaged_with_animation")
+            self.assertTrue(manifest.items[0].animation_video.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

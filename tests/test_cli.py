@@ -224,6 +224,62 @@ class CliTests(unittest.TestCase):
             self.assertIn("Packaged: 1", result.output)
             self.assertTrue((presentation / "presentation_batch_manifest.json").exists())
 
+    def test_animate_command_exports_parts_and_video(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            package_dir = root / "presentation" / "demo"
+            package_dir.mkdir(parents=True)
+            scene = trimesh.Scene()
+            scene.add_geometry(trimesh.creation.box(), geom_name="part_a")
+            scene.add_geometry(trimesh.creation.icosphere(subdivisions=0), geom_name="part_b")
+            level_a = package_dir / "level_a_segmented_parts.glb"
+            scene.export(level_a)
+            (package_dir / "presentation_manifest.json").write_text(
+                json.dumps({"levels": [{"level": "A", "package_path": str(level_a)}]}),
+                encoding="utf-8",
+            )
+            blender = root / "fake_blender.sh"
+            ffmpeg = root / "fake_ffmpeg.sh"
+            blender.write_text(
+                "#!/usr/bin/env bash\n"
+                "if [ \"$1\" = \"--version\" ]; then echo 'Blender 4.5.0'; exit 0; fi\n"
+                "exit 0\n",
+                encoding="utf-8",
+            )
+            ffmpeg.write_text(
+                "#!/usr/bin/env bash\n"
+                "if [ \"$1\" = \"-version\" ]; then echo 'ffmpeg version 8.0.1'; exit 0; fi\n"
+                "out=\"${@: -1}\"\n"
+                "mkdir -p \"$(dirname \"$out\")\"\n"
+                "printf mp4 > \"$out\"\n",
+                encoding="utf-8",
+            )
+            blender.chmod(0o755)
+            ffmpeg.chmod(0o755)
+
+            result = CliRunner().invoke(
+                app,
+                [
+                    "animate",
+                    str(package_dir),
+                    "--config",
+                    str(ROOT / "configs" / "default.yaml"),
+                    "--blender-path",
+                    str(blender),
+                    "--ffmpeg-path",
+                    str(ffmpeg),
+                    "--duration-seconds",
+                    "1",
+                    "--fps",
+                    "2",
+                ],
+            )
+
+            self.assertEqual(result.exit_code, 0, result.output)
+            self.assertIn("Video:", result.output)
+            self.assertTrue((package_dir / "parts" / "part_001.glb").exists())
+            self.assertTrue((package_dir / "animation" / "exploded_assembly.mp4").exists())
+
     def test_bridge_command_converts_existing_run(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_root = Path(temp_dir)

@@ -441,6 +441,111 @@ class PresentationPackageManifest:
 
 
 @dataclass(frozen=True)
+class PartExportItem:
+    index: int
+    name: str
+    source_geometry: str
+    path: Path
+    centroid: list[float]
+    bounds: list[list[float]]
+    vertex_count: int | None = None
+    face_count: int | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "index": self.index,
+            "name": self.name,
+            "source_geometry": self.source_geometry,
+            "path": str(self.path),
+            "centroid": self.centroid,
+            "bounds": self.bounds,
+            "vertex_count": self.vertex_count,
+            "face_count": self.face_count,
+        }
+
+
+@dataclass(frozen=True)
+class PartExportManifest:
+    package_dir: Path
+    source_level_a: Path
+    parts_dir: Path
+    items: list[PartExportItem]
+    manifest_path: Path
+
+    @property
+    def total(self) -> int:
+        return len(self.items)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "package_dir": str(self.package_dir),
+            "source_level_a": str(self.source_level_a),
+            "parts_dir": str(self.parts_dir),
+            "total": self.total,
+            "items": [item.to_dict() for item in self.items],
+            "manifest_path": str(self.manifest_path),
+        }
+
+
+@dataclass(frozen=True)
+class AnimationToolStatus:
+    blender_path: Path
+    ffmpeg_path: Path
+    blender_version: str | None = None
+    ffmpeg_version: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "blender_path": str(self.blender_path),
+            "ffmpeg_path": str(self.ffmpeg_path),
+            "blender_version": self.blender_version,
+            "ffmpeg_version": self.ffmpeg_version,
+        }
+
+
+@dataclass(frozen=True)
+class AnimationManifest:
+    package_dir: Path
+    source_level_a: Path
+    animation_dir: Path
+    frames_dir: Path
+    video_path: Path
+    part_manifest: Path
+    duration_seconds: float
+    fps: int
+    frame_count: int
+    width: int
+    height: int
+    explode_scale: float
+    rotation_degrees: float
+    view: str
+    tools: AnimationToolStatus
+    commands: list[list[str]]
+    manifest_path: Path
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "package_dir": str(self.package_dir),
+            "source_level_a": str(self.source_level_a),
+            "animation_dir": str(self.animation_dir),
+            "frames_dir": str(self.frames_dir),
+            "video_path": str(self.video_path),
+            "part_manifest": str(self.part_manifest),
+            "duration_seconds": self.duration_seconds,
+            "fps": self.fps,
+            "frame_count": self.frame_count,
+            "width": self.width,
+            "height": self.height,
+            "explode_scale": self.explode_scale,
+            "rotation_degrees": self.rotation_degrees,
+            "view": self.view,
+            "tools": self.tools.to_dict(),
+            "commands": self.commands,
+            "manifest_path": str(self.manifest_path),
+        }
+
+
+@dataclass(frozen=True)
 class PresentationBatchItem:
     asset_name: str
     source_manifest: Path | None
@@ -448,6 +553,8 @@ class PresentationBatchItem:
     presentation_manifest: Path | None
     status: str
     error: dict[str, str] | None = None
+    animation_manifest: Path | None = None
+    animation_video: Path | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -459,6 +566,8 @@ class PresentationBatchItem:
             else None,
             "status": self.status,
             "error": self.error,
+            "animation_manifest": str(self.animation_manifest) if self.animation_manifest is not None else None,
+            "animation_video": str(self.animation_video) if self.animation_video is not None else None,
         }
 
 
@@ -475,7 +584,7 @@ class PresentationBatchManifest:
 
     @property
     def packaged(self) -> int:
-        return sum(1 for item in self.items if item.status == "packaged")
+        return sum(1 for item in self.items if item.status in {"packaged", "packaged_with_animation"})
 
     @property
     def failed(self) -> int:

@@ -5,11 +5,11 @@
 See: `.planning/PROJECT.md` (updated 2026-05-15)
 
 **Core value:** A user can provide one `.glb` or a folder of `.glb` files and receive organized, presentation-ready segmented and completed part outputs.
-**Current focus:** Phase 9 ready to execute - Exploded Assembly Presentation Video
+**Current focus:** Phase 9 complete - Exploded Assembly Presentation Video
 
 ## Last Session
 
-Completed Phase 8 presentation packaging. PartPipeline now has `package` and `package-batch` commands that create presentation directories with Level A `bridge/prepared_parts.glb` as the default/recommended result and Level B `holopart/output.glb` as an explicit optional comparison artifact. A real smoke test packaged `outputs/runs/02.-01-20260518-190552` into `outputs/presentation/02.-01-20260518-190552`.
+Completed Phase 9 exploded assembly presentation video. PartPipeline now has an `animate` command that exports `parts/part_001.glb` style per-part assets from Level A packages, renders a Blender CPU Cycles exploded/reassembled animation, and encodes `animation/exploded_assembly.mp4` through ffmpeg. Batch presentation packaging can opt into animation generation with `--generate-animation`.
 
 ## Accumulated Context
 
@@ -22,6 +22,7 @@ Completed Phase 8 presentation packaging. PartPipeline now has `package` and `pa
 - Phase 9 refined: the key presentation deliverable should be an exploded-assembly animation/video where segmented Level A parts slide outward from the assembled model center and then slide back into place.
 - Phase 9 planned: use `trimesh + matplotlib + OpenCV` to export part GLBs and render a real exploded/reassembled MP4 from Level A packages.
 - Phase 9 route updated: user prefers Blender/ffmpeg installed or exposed through the `part` conda environment for rendering the MP4.
+- Phase 9 complete: Blender 4.5.0 and ffmpeg 8.0.1 are available through the `part` environment; real smoke output for `outputs/presentation/02.-01-20260518-190552` produced 5 part GLBs and a 640x360, 24-frame MP4.
 
 ### Prior Verification Anchors
 

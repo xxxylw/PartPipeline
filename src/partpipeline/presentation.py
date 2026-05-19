@@ -3,14 +3,16 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from partpipeline.artifacts import (
     create_presentation_package_dir,
     write_presentation_batch_manifest,
     write_presentation_manifest,
 )
+from partpipeline.animation import render_exploded_animation
 from partpipeline.types import (
+    AnimationManifest,
     PresentationBatchItem,
     PresentationBatchManifest,
     PresentationLevel,
@@ -106,6 +108,9 @@ def package_batch(
     presentation_dir: Path = Path("outputs/presentation"),
     include_level_b: bool = False,
     include_original: bool = False,
+    generate_animation: bool = False,
+    animation_options: dict[str, Any] | None = None,
+    animation_func: Callable[..., AnimationManifest] | None = None,
 ) -> PresentationBatchManifest:
     batch_manifest_path = batch_manifest_path.expanduser().resolve()
     if not batch_manifest_path.exists():
@@ -169,13 +174,38 @@ def package_batch(
             )
             continue
 
+        animation_manifest = None
+        animation_video = None
+        status = "packaged"
+        if generate_animation:
+            try:
+                render_func = animation_func or render_exploded_animation
+                animation = render_func(package.package_dir, **(animation_options or {}))
+                animation_manifest = animation.manifest_path
+                animation_video = animation.video_path
+                status = "packaged_with_animation"
+            except Exception as exc:
+                items.append(
+                    PresentationBatchItem(
+                        asset_name=asset_name,
+                        source_manifest=source_manifest,
+                        package_dir=package.package_dir,
+                        presentation_manifest=package.manifest_path,
+                        status="failed",
+                        error={"type": exc.__class__.__name__, "message": str(exc)},
+                    )
+                )
+                continue
+
         items.append(
             PresentationBatchItem(
                 asset_name=asset_name,
                 source_manifest=source_manifest,
                 package_dir=package.package_dir,
                 presentation_manifest=package.manifest_path,
-                status="packaged",
+                status=status,
+                animation_manifest=animation_manifest,
+                animation_video=animation_video,
             )
         )
 
