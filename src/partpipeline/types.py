@@ -522,6 +522,7 @@ class AnimationManifest:
     tools: AnimationToolStatus
     commands: list[list[str]]
     manifest_path: Path
+    preview_images: dict[str, Path] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -542,6 +543,7 @@ class AnimationManifest:
             "tools": self.tools.to_dict(),
             "commands": self.commands,
             "manifest_path": str(self.manifest_path),
+            "preview_images": {name: str(path) for name, path in self.preview_images.items()},
         }
 
 

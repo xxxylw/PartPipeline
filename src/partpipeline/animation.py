@@ -104,6 +104,7 @@ def render_exploded_animation(
         "source_level_a": str(part_manifest.source_level_a),
         "parts_manifest": str(part_manifest.manifest_path),
         "frames_dir": str(frames_dir),
+        "preview_dir": str(paths["preview_dir"]),
         "frame_pattern": "frame_####.png",
         "frame_count": frame_count,
         "fps": fps,
@@ -162,6 +163,10 @@ def render_exploded_animation(
         tools=tools,
         commands=[blender_command, ffmpeg_command],
         manifest_path=paths["manifest_path"],
+        preview_images={
+            "segmented_front": paths["segmented_preview"],
+            "exploded_view": paths["exploded_preview"],
+        },
     )
     write_animation_manifest(manifest)
     return manifest

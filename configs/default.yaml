@@ -20,8 +20,8 @@ pipeline:
     fps: 24
     width: 1280
     height: 720
-    explode_scale: 1.25
-    rotation_degrees: 15.0
+    explode_scale: 0.12
+    rotation_degrees: 8.0
 
 profiles:
   local_wsl:

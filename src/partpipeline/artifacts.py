@@ -119,6 +119,9 @@ def animation_artifact_paths(package_dir: Path) -> dict[str, Path]:
         "video_path": animation_dir / "exploded_assembly.mp4",
         "manifest_path": animation_dir / "animation_manifest.json",
         "job_path": animation_dir / "blender_job.json",
+        "preview_dir": package_dir / "preview",
+        "segmented_preview": package_dir / "preview" / "segmented_front.png",
+        "exploded_preview": package_dir / "preview" / "exploded_view.png",
         "parts_dir": package_dir / "parts",
         "parts_manifest": package_dir / "parts" / "parts_manifest.json",
     }
