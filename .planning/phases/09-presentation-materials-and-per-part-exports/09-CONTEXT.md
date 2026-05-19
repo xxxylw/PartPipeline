@@ -17,6 +17,8 @@ Phase 9 turns an existing Phase 8 Level A presentation package into clearer demo
 - **D-01:** The primary deliverable is a real MP4 video, not only an HTML preview or static report.
 - **D-02:** The MP4 should be written inside the presentation package, preferably under an `animation/` subdirectory.
 - **D-03:** The package should also include animation metadata, for example `animation/animation_manifest.json`, with source package, source Level A GLB, part count, duration, frame count, and output paths.
+- **D-03a:** Use Blender and ffmpeg for the real video rendering path.
+- **D-03b:** Blender and ffmpeg should be installed or made available through the `part` conda environment rather than relying on unrelated system tooling.
 
 ### Animation Behavior
 - **D-04:** The animation starts from the assembled state.
@@ -44,7 +46,7 @@ Phase 9 turns an existing Phase 8 Level A presentation package into clearer demo
 
 ### Agent Discretion
 - The agent may choose the exact CLI names, but the expected shape is a command for one package and an optional flag for batch animation generation.
-- The agent may choose the rendering backend after research. Good candidates include Blender CLI, Python/trimesh-based frame generation plus ffmpeg, or another reliable local renderer.
+- The rendering backend is no longer open-ended: plan and implementation should target Blender CLI plus ffmpeg, with clear preflight errors if either is unavailable in the `part` environment.
 - The agent may choose exact duration, FPS, easing curve, and rotation angle, as long as the motion visibly communicates exploded segmentation and produces a usable MP4.
 
 </decisions>
@@ -75,12 +77,14 @@ Phase 9 turns an existing Phase 8 Level A presentation package into clearer demo
 - `src/partpipeline/types.py` - Existing manifest dataclass pattern should guide animation/part export metadata.
 - `src/partpipeline/artifacts.py` - Existing JSON writer and directory helper style should guide new animation output helpers.
 - `src/partpipeline/cli.py` - Existing Typer commands `package` and `package-batch` are the natural integration points.
+- `configs/default.yaml` or project config conventions may be extended if the Blender/ffmpeg executable paths should be configurable.
 
 ### Established Patterns
 - Generated assets live under `outputs/` and are ignored by git.
 - Presentation commands read existing artifacts and write organized outputs; they do not run model inference.
 - JSON manifests serialize paths as strings with `ensure_ascii=False`.
 - Tests should use fake GLBs or temporary files unless a final smoke test uses the existing real Phase 8 package.
+- Rendering preflight should explicitly check Blender and ffmpeg availability through the `part` environment.
 
 ### Integration Points
 - Single-package command can read `presentation_manifest.json` and `level_a_segmented_parts.glb`.
@@ -97,6 +101,7 @@ Phase 9 turns an existing Phase 8 Level A presentation package into clearer demo
 - User wants a fixed three-quarter view.
 - User wants individual part GLBs exported as `parts/part_001.glb`, etc.
 - User wants batch animation generation supported as an option rather than always-on.
+- User wants Blender/ffmpeg used for rendering, installed or available inside the `part` conda environment.
 - The existing real package path to use for smoke testing is likely `outputs/presentation/02.-01-20260518-190552`.
 
 </specifics>
@@ -107,6 +112,7 @@ Phase 9 turns an existing Phase 8 Level A presentation package into clearer demo
 - Interactive web viewer controls can be future work unless they are needed to generate or inspect the MP4.
 - Camera orbit can be future work; fixed three-quarter view is preferred for Phase 9.
 - Advanced lighting/material styling can be future work if it slows down the first reliable MP4 export.
+- Python/OpenCV-only rendering remains a fallback idea but is not the selected Phase 9 route.
 - Automatic quality scoring between Level A and Level B remains out of scope.
 
 </deferred>
@@ -115,4 +121,3 @@ Phase 9 turns an existing Phase 8 Level A presentation package into clearer demo
 
 *Phase: 9-Exploded Assembly Presentation Video*
 *Context gathered: 2026-05-19*
-

@@ -76,7 +76,7 @@
 
 ## Agent Discretion
 
-- Exact renderer/backend is left to research and planning.
+- Renderer/backend is now locked to Blender CLI plus ffmpeg, installed or available through the `part` conda environment.
 - Exact FPS, duration, easing, rotation angle, lighting, and output filenames may be chosen during planning.
 - CLI naming can follow existing project conventions.
 
@@ -86,4 +86,3 @@
 - Camera orbit.
 - Advanced rendering/material styling.
 - Automatic quality scoring.
-

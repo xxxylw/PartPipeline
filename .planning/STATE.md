@@ -21,6 +21,7 @@ Completed Phase 8 presentation packaging. PartPipeline now has `package` and `pa
 - Phase 9 added: Presentation Materials and Per-Part Exports, focused on turning the Level A package into richer review/reporting materials.
 - Phase 9 refined: the key presentation deliverable should be an exploded-assembly animation/video where segmented Level A parts slide outward from the assembled model center and then slide back into place.
 - Phase 9 planned: use `trimesh + matplotlib + OpenCV` to export part GLBs and render a real exploded/reassembled MP4 from Level A packages.
+- Phase 9 route updated: user prefers Blender/ffmpeg installed or exposed through the `part` conda environment for rendering the MP4.
 
 ### Prior Verification Anchors
 
