@@ -5,8 +5,14 @@
 See: `.planning/PROJECT.md` (updated 2026-05-15)
 
 **Core value:** A user can provide one `.glb` or a folder of `.glb` files and receive organized, presentation-ready segmented and completed part outputs.
-**Current focus:** Phase 7 - Batch, Server Run Mode, and Presentation Outputs
+**Current focus:** Phase 8 - Presentation Package and Output Levels
 
 ## Last Session
 
-Completed Phase 6 HoloPart integration. PartPipeline can now run `partpipeline holopart <run_dir>` against a Phase 5 bridge output, invoke upstream HoloPart with the `holopart` conda environment, record logs, update `manifest.json`, and collect `holopart/output.glb`. The real run at `outputs/runs/08.toulouse-20260515-160213` completed with status `holopart_complete`; the output GLB is 6.5 MB and loads as a `trimesh.Scene` with 34 geometries. HoloPart weights were predownloaded into the HoloPart submodule because the Python Hugging Face client hit a mirror metadata/cache issue; runtime still sets `HF_ENDPOINT=https://hf-mirror.com`. Next: implement batch processing, server run mode, and presentation-oriented outputs.
+Completed Phase 7 batch runtime and real-model verification. PartPipeline can stage GLBs into `inputs/phase7`, run `batch` over a directory, write `batch_manifest.json`, and preserve per-run outputs. A real sample `02.香叶天竺葵01.glb` completed the SAMPart3D -> bridge -> HoloPart path with batch status `complete`; `holopart/output.glb` loaded as a `trimesh.Scene` with 5 geometries. New product decision for Phase 8: default presentation output should be Level A `bridge/prepared_parts.glb` because it preserves the original geometry more reliably; Level B `holopart/output.glb` remains optional comparison/enhancement because HoloPart can produce unstable or messy geometry.
+
+## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 8 added: Presentation Package and Output Levels.

@@ -72,3 +72,14 @@
 2. Each asset has a manifest with status, paths, and timings.
 3. Outputs include masks, prepared GLB, completed GLB, logs, and optional per-part exports.
 4. Server profile usage is documented for host `d5`.
+
+### Phase 8: Presentation Package and Output Levels
+**Goal:** Package presentation-ready outputs with Level A segmented parts as the default display result and Level B HoloPart completion as an optional comparison result.
+**Mode:** mvp
+**Requirements:** OUT-02
+**Success Criteria**:
+1. A completed run can be packaged into a presentation directory.
+2. Level A defaults to `bridge/prepared_parts.glb` and is marked as the recommended display output.
+3. Level B includes `holopart/output.glb` only when available or explicitly requested.
+4. The package includes a manifest describing original input, Level A, optional Level B, part manifest, and recommendation metadata.
+5. HoloPart output is treated as an enhancement/comparison artifact, not the default presentation result.
