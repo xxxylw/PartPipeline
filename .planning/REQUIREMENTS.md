@@ -35,7 +35,7 @@
 ## v2 Requirements
 
 - [ ] Auto-select the best SAMPart3D scale based on part count or quality heuristics.
-- [ ] Generate visual previews or an HTML report for presentation.
+- [ ] **V2-PRESENTATION-REPORT**: Generate visual previews, an HTML report, or another lightweight presentation index for review/demo workflows.
 - [ ] Add resumable batch runs with retry controls.
 
 ## Out of Scope
@@ -58,6 +58,7 @@
 | BRIDGE-02 | Phase 5 |
 | HOLO-01 | Phase 6 |
 | OUT-01 | Phase 3, Phase 4, Phase 6, Phase 7 |
-| OUT-02 | Phase 6, Phase 7 |
+| OUT-02 | Phase 6, Phase 7, Phase 8, Phase 9 |
 | ENV-01 | Phase 2 |
 | ENV-02 | Phase 2 |
+| V2-PRESENTATION-REPORT | Phase 9 |

@@ -84,3 +84,14 @@
 3. Level B includes `holopart/output.glb` only when available or explicitly requested.
 4. The package includes a manifest describing original input, Level A, optional Level B, part manifest, and recommendation metadata.
 5. HoloPart output is treated as an enhancement/comparison artifact, not the default presentation result.
+
+### Phase 9: Presentation Materials and Per-Part Exports
+**Goal:** Extend the Level A presentation package into richer materials for review and reporting, including per-part exports and a lightweight presentation report or index.
+**Mode:** mvp
+**Requirements:** OUT-02, V2-PRESENTATION-REPORT
+**Success Criteria**:
+1. A Level A presentation package can export individual part GLBs into a stable `parts/` directory when practical.
+2. The presentation package includes an inspectable report or index that summarizes the asset, part count, Level A recommendation, and optional Level B availability.
+3. The report/index links or references Level A, optional Level B, per-part exports, and source run metadata.
+4. Batch presentation packaging can aggregate per-item report/index paths for demo review.
+5. The implementation keeps Level A as the default display result and does not require rerunning SAMPart3D or HoloPart.
