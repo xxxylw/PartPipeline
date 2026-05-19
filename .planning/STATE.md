@@ -9,10 +9,16 @@ See: `.planning/PROJECT.md` (updated 2026-05-15)
 
 ## Last Session
 
-Completed Phase 7 batch runtime and real-model verification. PartPipeline can stage GLBs into `inputs/phase7`, run `batch` over a directory, write `batch_manifest.json`, and preserve per-run outputs. A real sample `02.香叶天竺葵01.glb` completed the SAMPart3D -> bridge -> HoloPart path with batch status `complete`; `holopart/output.glb` loaded as a `trimesh.Scene` with 5 geometries. New product decision for Phase 8: default presentation output should be Level A `bridge/prepared_parts.glb` because it preserves the original geometry more reliably; Level B `holopart/output.glb` remains optional comparison/enhancement because HoloPart can produce unstable or messy geometry.
+Planned Phase 8 presentation packaging. The phase will add presentation package commands for single runs and batch manifests, with Level A `bridge/prepared_parts.glb` as the default/recommended output and Level B `holopart/output.glb` as an explicit optional comparison artifact. Planning artifacts are available in `.planning/phases/08-presentation-package-and-output-levels/08-RESEARCH.md` and `08-01-PLAN.md`.
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
 - Phase 8 added: Presentation Package and Output Levels.
+- Phase 8 planned: Presentation package commands will produce `presentation_manifest.json` and `presentation_batch_manifest.json`, defaulting to Level A and requiring explicit opt-in for Level B and original GLB copying.
+
+### Prior Verification Anchors
+
+- Phase 7 real sample: `02.香叶天竺葵01.glb` completed the SAMPart3D -> bridge -> HoloPart batch path; its HoloPart output loaded as a `trimesh.Scene` with 5 geometries.
+- Phase 8 smoke testing should use the existing Phase 7 run when available: `outputs/runs/02.-01-20260518-190552`.
