@@ -7,7 +7,7 @@ from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 
-from partpipeline.types import BatchManifest, RunManifest, RunPaths
+from partpipeline.types import BatchManifest, PresentationBatchManifest, PresentationPackageManifest, RunManifest, RunPaths
 
 
 def create_run_paths(
@@ -78,6 +78,30 @@ def write_batch_manifest(manifest: BatchManifest) -> Path:
     return manifest.manifest_path
 
 
+def create_presentation_package_dir(presentation_root: Path, run_dir: Path) -> Path:
+    package_dir = presentation_root.expanduser().resolve() / _safe_name(run_dir.name)
+    package_dir.mkdir(parents=True, exist_ok=True)
+    return package_dir
+
+
+def write_presentation_manifest(manifest: PresentationPackageManifest) -> Path:
+    manifest.manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest.manifest_path.write_text(
+        json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return manifest.manifest_path
+
+
+def write_presentation_batch_manifest(manifest: PresentationBatchManifest) -> Path:
+    manifest.manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest.manifest_path.write_text(
+        json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return manifest.manifest_path
+
+
 def update_manifest_status(manifest: RunManifest, status: str) -> RunManifest:
     updated = replace(
         manifest,
@@ -93,3 +117,10 @@ def _safe_stem(path: Path) -> str:
     stem = re.sub(r"[^a-z0-9._-]+", "-", stem)
     stem = stem.strip("-._")
     return stem or "asset"
+
+
+def _safe_name(value: str) -> str:
+    name = value.strip().lower()
+    name = re.sub(r"[^a-z0-9._-]+", "-", name)
+    name = name.strip("-._")
+    return name or "asset"

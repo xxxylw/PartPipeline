@@ -17,6 +17,43 @@ sys.path.insert(0, str(ROOT / "src"))
 from partpipeline.cli import app
 
 
+def make_packagable_run(root: Path, name: str = "demo-run", with_level_b: bool = True) -> Path:
+    run_dir = root / name
+    bridge_dir = run_dir / "bridge"
+    holopart_dir = run_dir / "holopart"
+    bridge_dir.mkdir(parents=True)
+    holopart_dir.mkdir()
+    original = root / "original.glb"
+    original.write_bytes(b"original")
+    prepared = bridge_dir / "prepared_parts.glb"
+    prepared.write_bytes(b"level-a")
+    part_manifest = bridge_dir / "part_manifest.json"
+    part_manifest.write_text('{"parts":[]}', encoding="utf-8")
+    manifest = {
+        "input_path": str(original),
+        "profile": "local_wsl",
+        "output_root": str(root),
+        "run_dir": str(run_dir),
+        "mask_scale": "1.0",
+        "status": "bridge_complete",
+        "created_at": "2026-05-19T12:00:00",
+        "updated_at": "2026-05-19T12:00:00",
+        "paths": {
+            "run_dir": str(run_dir),
+            "bridge_dir": str(bridge_dir),
+            "holopart_dir": str(holopart_dir),
+            "manifest_path": str(run_dir / "manifest.json"),
+        },
+        "bridge": {"prepared_glb": str(prepared), "part_manifest": str(part_manifest)},
+    }
+    if with_level_b:
+        output = holopart_dir / "output.glb"
+        output.write_bytes(b"level-b")
+        manifest["holopart"] = {"output_glb": str(output)}
+    (run_dir / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    return run_dir
+
+
 class CliTests(unittest.TestCase):
     def test_stage_inputs_command_copies_glbs(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -102,6 +139,90 @@ class CliTests(unittest.TestCase):
             self.assertIn("Status: dry_run", result.output)
             self.assertIn("Total: 2", result.output)
             self.assertIn("Batch manifest:", result.output)
+
+    def test_package_command_writes_level_a_package_by_default(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            run_dir = make_packagable_run(root)
+            presentation = root / "presentation"
+
+            result = CliRunner().invoke(
+                app,
+                ["package", str(run_dir), "--presentation-dir", str(presentation)],
+            )
+
+            self.assertEqual(result.exit_code, 0, result.output)
+            self.assertIn("Default level: A", result.output)
+            package_dir = presentation / run_dir.name
+            self.assertTrue((package_dir / "level_a_segmented_parts.glb").exists())
+            self.assertFalse((package_dir / "level_b_holopart_output.glb").exists())
+            saved = json.loads((package_dir / "presentation_manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(saved["default_level"], "A")
+
+    def test_package_command_can_include_level_b(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            run_dir = make_packagable_run(root)
+            presentation = root / "presentation"
+
+            result = CliRunner().invoke(
+                app,
+                [
+                    "package",
+                    str(run_dir),
+                    "--presentation-dir",
+                    str(presentation),
+                    "--include-level-b",
+                ],
+            )
+
+            self.assertEqual(result.exit_code, 0, result.output)
+            self.assertTrue((presentation / run_dir.name / "level_b_holopart_output.glb").exists())
+
+    def test_package_command_reports_missing_level_a(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            run_dir = make_packagable_run(root)
+            (run_dir / "bridge" / "prepared_parts.glb").unlink()
+
+            result = CliRunner().invoke(
+                app,
+                ["package", str(run_dir), "--presentation-dir", str(root / "presentation")],
+            )
+
+            self.assertNotEqual(result.exit_code, 0)
+            self.assertIn("Level A", result.output)
+
+    def test_package_batch_command_writes_batch_presentation_manifest(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            run_dir = make_packagable_run(root, "asset-a-run")
+            batch_dir = root / "runs" / "batches" / "batch-test"
+            batch_dir.mkdir(parents=True)
+            batch_manifest = batch_dir / "batch_manifest.json"
+            batch_manifest.write_text(
+                json.dumps(
+                    {
+                        "items": [
+                            {
+                                "asset_name": "a.glb",
+                                "manifest_path": str(run_dir / "manifest.json"),
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            presentation = root / "presentation"
+
+            result = CliRunner().invoke(
+                app,
+                ["package-batch", str(batch_manifest), "--presentation-dir", str(presentation)],
+            )
+
+            self.assertEqual(result.exit_code, 0, result.output)
+            self.assertIn("Packaged: 1", result.output)
+            self.assertTrue((presentation / "presentation_batch_manifest.json").exists())
 
     def test_bridge_command_converts_existing_run(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -25,7 +25,7 @@
 ### Outputs
 
 - [ ] **OUT-01**: Each run writes a manifest JSON with input path, selected mask, intermediate paths, final output path, status, and timings.
-- [ ] **OUT-02**: Each run preserves useful presentation artifacts: SAM mask, prepared multipart GLB, HoloPart output, logs, and per-part exports where practical.
+- [x] **OUT-02**: Each run preserves useful presentation artifacts: SAM mask, prepared multipart GLB, HoloPart output, logs, and per-part exports where practical. Validated in Phase 8 with Level A/Level B presentation packaging.
 
 ### Environment
 

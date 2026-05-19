@@ -386,3 +386,108 @@ class RunManifest:
         if self.error is not None:
             data["error"] = self.error
         return data
+
+
+@dataclass(frozen=True)
+class PresentationLevel:
+    level: str
+    name: str
+    source_path: Path
+    package_path: Path
+    recommended_for_display: bool
+    role: str
+    note: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        data: dict[str, Any] = {
+            "level": self.level,
+            "name": self.name,
+            "source_path": str(self.source_path),
+            "package_path": str(self.package_path),
+            "recommended_for_display": self.recommended_for_display,
+            "role": self.role,
+        }
+        if self.note is not None:
+            data["note"] = self.note
+        return data
+
+
+@dataclass(frozen=True)
+class PresentationPackageManifest:
+    package_dir: Path
+    source_run_dir: Path
+    source_manifest: Path
+    input_path: Path
+    default_level: str
+    levels: list[PresentationLevel]
+    part_manifest: Path | None
+    original_glb: Path | None
+    notes: list[str]
+    manifest_path: Path
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "package_dir": str(self.package_dir),
+            "source_run_dir": str(self.source_run_dir),
+            "source_manifest": str(self.source_manifest),
+            "input_path": str(self.input_path),
+            "default_level": self.default_level,
+            "levels": [level.to_dict() for level in self.levels],
+            "part_manifest": str(self.part_manifest) if self.part_manifest is not None else None,
+            "original_glb": str(self.original_glb) if self.original_glb is not None else None,
+            "notes": self.notes,
+            "manifest_path": str(self.manifest_path),
+        }
+
+
+@dataclass(frozen=True)
+class PresentationBatchItem:
+    asset_name: str
+    source_manifest: Path | None
+    package_dir: Path | None
+    presentation_manifest: Path | None
+    status: str
+    error: dict[str, str] | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "asset_name": self.asset_name,
+            "source_manifest": str(self.source_manifest) if self.source_manifest is not None else None,
+            "package_dir": str(self.package_dir) if self.package_dir is not None else None,
+            "presentation_manifest": str(self.presentation_manifest)
+            if self.presentation_manifest is not None
+            else None,
+            "status": self.status,
+            "error": self.error,
+        }
+
+
+@dataclass(frozen=True)
+class PresentationBatchManifest:
+    batch_manifest_path: Path
+    presentation_dir: Path
+    items: list[PresentationBatchItem]
+    manifest_path: Path
+
+    @property
+    def total(self) -> int:
+        return len(self.items)
+
+    @property
+    def packaged(self) -> int:
+        return sum(1 for item in self.items if item.status == "packaged")
+
+    @property
+    def failed(self) -> int:
+        return sum(1 for item in self.items if item.status == "failed")
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "batch_manifest_path": str(self.batch_manifest_path),
+            "presentation_dir": str(self.presentation_dir),
+            "total": self.total,
+            "packaged": self.packaged,
+            "failed": self.failed,
+            "items": [item.to_dict() for item in self.items],
+            "manifest_path": str(self.manifest_path),
+        }

@@ -5,11 +5,11 @@
 See: `.planning/PROJECT.md` (updated 2026-05-15)
 
 **Core value:** A user can provide one `.glb` or a folder of `.glb` files and receive organized, presentation-ready segmented and completed part outputs.
-**Current focus:** Phase 8 - Presentation Package and Output Levels
+**Current focus:** Phase 8 complete - Presentation Package and Output Levels
 
 ## Last Session
 
-Planned Phase 8 presentation packaging. The phase will add presentation package commands for single runs and batch manifests, with Level A `bridge/prepared_parts.glb` as the default/recommended output and Level B `holopart/output.glb` as an explicit optional comparison artifact. Planning artifacts are available in `.planning/phases/08-presentation-package-and-output-levels/08-RESEARCH.md` and `08-01-PLAN.md`.
+Completed Phase 8 presentation packaging. PartPipeline now has `package` and `package-batch` commands that create presentation directories with Level A `bridge/prepared_parts.glb` as the default/recommended result and Level B `holopart/output.glb` as an explicit optional comparison artifact. A real smoke test packaged `outputs/runs/02.-01-20260518-190552` into `outputs/presentation/02.-01-20260518-190552`.
 
 ## Accumulated Context
 
@@ -17,6 +17,7 @@ Planned Phase 8 presentation packaging. The phase will add presentation package 
 
 - Phase 8 added: Presentation Package and Output Levels.
 - Phase 8 planned: Presentation package commands will produce `presentation_manifest.json` and `presentation_batch_manifest.json`, defaulting to Level A and requiring explicit opt-in for Level B and original GLB copying.
+- Phase 8 complete: presentation packaging writes `level_a_segmented_parts.glb`, optional `level_b_holopart_output.glb`, `part_manifest.json`, and presentation manifests.
 
 ### Prior Verification Anchors
 

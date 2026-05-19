@@ -15,6 +15,7 @@ from partpipeline.orchestrator import (
     run_batch_pipeline,
     run_holopart_for_existing_run,
 )
+from partpipeline.presentation import PresentationPackagingError, package_batch, package_run
 from partpipeline.runners.holopart import HoloPartExecutionError, HoloPartPreflightError
 from partpipeline.runners.sampart3d import Sampart3DExecutionError, Sampart3DPreflightError
 from partpipeline.types import RunRequest
@@ -156,6 +157,56 @@ def batch(
     typer.echo(f"Succeeded: {manifest.succeeded}")
     typer.echo(f"Failed: {manifest.failed}")
     typer.echo(f"Batch manifest: {manifest.manifest_path}")
+
+
+@app.command("package")
+def package(
+    run_dir: Path = typer.Argument(..., exists=True, file_okay=False, dir_okay=True),
+    presentation_dir: Path = typer.Option(Path("outputs/presentation"), "--presentation-dir"),
+    include_level_b: bool = typer.Option(False, "--include-level-b"),
+    include_original: bool = typer.Option(False, "--include-original"),
+) -> None:
+    """Package a completed run into presentation-ready Level A/Level B outputs."""
+    try:
+        manifest = package_run(
+            run_dir,
+            presentation_dir,
+            include_level_b=include_level_b,
+            include_original=include_original,
+        )
+    except PresentationPackagingError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from exc
+
+    typer.echo(f"Package directory: {manifest.package_dir}")
+    typer.echo(f"Manifest: {manifest.manifest_path}")
+    typer.echo(f"Default level: {manifest.default_level}")
+
+
+@app.command("package-batch")
+def package_batch_command(
+    batch_manifest: Path = typer.Argument(..., exists=True, file_okay=True, dir_okay=False),
+    presentation_dir: Path = typer.Option(Path("outputs/presentation"), "--presentation-dir"),
+    include_level_b: bool = typer.Option(False, "--include-level-b"),
+    include_original: bool = typer.Option(False, "--include-original"),
+) -> None:
+    """Package all usable runs from a batch manifest into presentation-ready outputs."""
+    try:
+        manifest = package_batch(
+            batch_manifest,
+            presentation_dir,
+            include_level_b=include_level_b,
+            include_original=include_original,
+        )
+    except PresentationPackagingError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from exc
+
+    typer.echo(f"Presentation directory: {manifest.presentation_dir}")
+    typer.echo(f"Batch presentation manifest: {manifest.manifest_path}")
+    typer.echo(f"Total: {manifest.total}")
+    typer.echo(f"Packaged: {manifest.packaged}")
+    typer.echo(f"Failed: {manifest.failed}")
 
 
 if __name__ == "__main__":
