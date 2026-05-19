@@ -244,7 +244,7 @@ def _setup_render(job: dict) -> None:
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
     scene.cycles.device = "CPU"
-    scene.cycles.samples = 48
+    scene.cycles.samples = 12
     scene.frame_start = 1
     scene.frame_end = int(job["frame_count"])
     scene.render.fps = int(job["fps"])
