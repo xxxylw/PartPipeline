@@ -36,8 +36,8 @@ def package_run(
         raise PresentationPackagingError(f"Run manifest does not exist: {source_manifest}")
 
     data = _read_json(source_manifest)
-    package_dir = create_presentation_package_dir(presentation_dir, run_dir)
     input_path = _path_from_value(data.get("input_path"), base=run_dir)
+    package_dir = create_presentation_package_dir(presentation_dir, run_dir, input_path)
 
     level_a_source = _level_a_source(run_dir, data)
     if not level_a_source.exists():

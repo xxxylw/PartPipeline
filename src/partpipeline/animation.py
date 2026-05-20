@@ -113,6 +113,9 @@ def render_exploded_animation(
         "explode_scale": explode_scale,
         "rotation_degrees": rotation_degrees,
         "view": view,
+        "show_floor": False,
+        "transparent_background": False,
+        "camera_padding": 0.95,
     }
     paths["job_path"].write_text(json.dumps(job, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 

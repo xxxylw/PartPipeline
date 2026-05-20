@@ -114,7 +114,7 @@ class PresentationPackagingTests(unittest.TestCase):
 
             manifest = package_run(run_dir, root / "presentation")
 
-            self.assertEqual(manifest.package_dir.name, "02.-01-20260518-190552")
+            self.assertEqual(manifest.package_dir.name, "original-20260518-190552")
             self.assertTrue((manifest.package_dir / "level_a_segmented_parts.glb").exists())
             self.assertFalse((manifest.package_dir / "level_b_holopart_output.glb").exists())
             self.assertTrue((manifest.package_dir / "part_manifest.json").exists())
@@ -123,6 +123,21 @@ class PresentationPackagingTests(unittest.TestCase):
             self.assertTrue(saved["levels"][0]["recommended_for_display"])
             self.assertEqual(saved["levels"][0]["level"], "A")
             self.assertEqual(saved["original_glb"], None)
+
+    def test_package_run_uses_original_glb_name_and_run_time_for_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            run_dir = make_run(root, "02.-01-20260519-144728")
+            original = root / "02.香叶天竺葵01.glb"
+            original.write_bytes(b"original")
+            manifest_path = run_dir / "manifest.json"
+            saved = json.loads(manifest_path.read_text(encoding="utf-8"))
+            saved["input_path"] = str(original)
+            manifest_path.write_text(json.dumps(saved), encoding="utf-8")
+
+            manifest = package_run(run_dir, root / "presentation")
+
+            self.assertEqual(manifest.package_dir.name, "02.香叶天竺葵01-20260519-144728")
 
     def test_package_run_can_include_level_b_and_original(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

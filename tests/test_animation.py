@@ -192,6 +192,11 @@ class AnimationExportTests(unittest.TestCase):
             self.assertEqual(manifest.fps, 24)
             self.assertEqual(manifest.frame_count, 120)
 
+            job = json.loads((package_dir / "animation" / "blender_job.json").read_text(encoding="utf-8"))
+            self.assertFalse(job["show_floor"])
+            self.assertFalse(job["transparent_background"])
+            self.assertGreaterEqual(job["camera_padding"], 0.9)
+
 
 if __name__ == "__main__":
     unittest.main()

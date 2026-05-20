@@ -86,8 +86,17 @@ def write_batch_manifest(manifest: BatchManifest) -> Path:
     return manifest.manifest_path
 
 
-def create_presentation_package_dir(presentation_root: Path, run_dir: Path) -> Path:
-    package_dir = presentation_root.expanduser().resolve() / _safe_name(run_dir.name)
+def create_presentation_package_dir(
+    presentation_root: Path,
+    run_dir: Path,
+    input_path: Path | None = None,
+) -> Path:
+    if input_path is not None:
+        run_suffix = _run_time_suffix(run_dir.name)
+        package_name = f"{_safe_presentation_stem(input_path)}-{run_suffix}" if run_suffix else _safe_presentation_stem(input_path)
+    else:
+        package_name = _safe_name(run_dir.name)
+    package_dir = presentation_root.expanduser().resolve() / package_name
     package_dir.mkdir(parents=True, exist_ok=True)
     return package_dir
 
@@ -167,3 +176,16 @@ def _safe_name(value: str) -> str:
     name = re.sub(r"[^a-z0-9._-]+", "-", name)
     name = name.strip("-._")
     return name or "asset"
+
+
+def _safe_presentation_stem(path: Path) -> str:
+    stem = path.stem.strip()
+    stem = re.sub(r"[\\/:*?\"<>|]+", "-", stem)
+    stem = re.sub(r"\s+", "-", stem)
+    stem = stem.strip("-._")
+    return stem or "asset"
+
+
+def _run_time_suffix(name: str) -> str:
+    match = re.search(r"(\d{8}-\d{6})$", name)
+    return match.group(1) if match else ""

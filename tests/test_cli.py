@@ -153,7 +153,7 @@ class CliTests(unittest.TestCase):
 
             self.assertEqual(result.exit_code, 0, result.output)
             self.assertIn("Default level: A", result.output)
-            package_dir = presentation / run_dir.name
+            package_dir = presentation / "original"
             self.assertTrue((package_dir / "level_a_segmented_parts.glb").exists())
             self.assertFalse((package_dir / "level_b_holopart_output.glb").exists())
             saved = json.loads((package_dir / "presentation_manifest.json").read_text(encoding="utf-8"))
@@ -177,7 +177,7 @@ class CliTests(unittest.TestCase):
             )
 
             self.assertEqual(result.exit_code, 0, result.output)
-            self.assertTrue((presentation / run_dir.name / "level_b_holopart_output.glb").exists())
+            self.assertTrue((presentation / "original" / "level_b_holopart_output.glb").exists())
 
     def test_package_command_reports_missing_level_a(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

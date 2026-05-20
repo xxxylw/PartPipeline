@@ -76,7 +76,8 @@ def main() -> None:
     shot_center, shot_span = _shot_bounds(display_objects, exploded_points)
     _setup_camera(shot_center, shot_span, job)
     _setup_lighting(shot_center, shot_span.length)
-    _setup_floor(center, display_objects)
+    if job.get("show_floor", False):
+        _setup_floor(center, display_objects)
     _setup_render(job)
     _render_preview(preview_dir / "segmented_front.png", 1)
     _render_preview(preview_dir / "exploded_view.png", hold_frame)
@@ -207,19 +208,27 @@ def _setup_camera(center: Vector, span: Vector, job: dict) -> None:
     camera.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
     camera_data.type = "ORTHO"
     aspect = float(job["width"]) / max(float(job["height"]), 1.0)
-    camera_data.ortho_scale = max(dominant * 0.72, 0.08) * (1.0 if aspect >= 1.0 else 1.15)
+    padding = float(job.get("camera_padding", 1.25))
+    camera_data.ortho_scale = max(dominant * padding, 0.08) * (1.0 if aspect >= 1.0 else 1.15)
     camera_data.dof.use_dof = False
     bpy.context.scene.camera = camera
 
 
 def _setup_lighting(center: Vector, diagonal: float) -> None:
-    bpy.context.scene.world.color = (0.94, 0.94, 0.94)
+    world = bpy.context.scene.world or bpy.data.worlds.new("Presentation_World")
+    bpy.context.scene.world = world
+    world.color = (1.0, 1.0, 1.0)
+    world.use_nodes = True
+    background = world.node_tree.nodes.get("Background")
+    if background is not None:
+        background.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)
+        background.inputs["Strength"].default_value = 1.0
     light_data = bpy.data.lights.new("Key_Area", type="AREA")
     light = bpy.data.objects.new("Key_Area", light_data)
     bpy.context.collection.objects.link(light)
     distance = max(diagonal, 1.0) * 1.2
     light.location = center + Vector((distance, -distance * 0.8, distance * 1.2))
-    light_data.energy = 300
+    light_data.energy = 120
     light_data.size = max(diagonal * 0.9, 1.0)
 
 
@@ -252,10 +261,10 @@ def _setup_render(job: dict) -> None:
     scene.render.resolution_y = int(job["height"])
     scene.render.image_settings.file_format = "PNG"
     scene.view_settings.view_transform = "Standard"
-    scene.view_settings.look = "Medium High Contrast"
-    scene.view_settings.exposure = -1.8
+    scene.view_settings.look = "None"
+    scene.view_settings.exposure = -0.35
     scene.view_settings.gamma = 1.0
-    scene.render.film_transparent = False
+    scene.render.film_transparent = bool(job.get("transparent_background", True))
 
 
 def _render_preview(path: Path, frame: int) -> None:
