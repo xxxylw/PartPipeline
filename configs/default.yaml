@@ -1,4 +1,4 @@
-active_profile: local_wsl
+active_profile: server
 
 environment:
   strategy: dispatcher
@@ -44,9 +44,9 @@ profiles:
       batch_size: 8
 
   server:
-    project_root: /server/path/placeholder/PartPipeline
-    output_root: outputs/server-runs
-    filesystem_paths_are_placeholders: true
+    project_root: /NAS/qzqd5/workspace/PloysGen-AddPartPipeline/PartPipeline
+    output_root: /NAS/qzqd5/trellis-demo-dev/partpipeline-runs
+    filesystem_paths_are_placeholders: false
     ssh:
       host_alias: d5
       hostname: 10.1.6.8
@@ -55,12 +55,13 @@ profiles:
     sampart3d:
       repo: third_party/SAMPart3D
       env: part
-      python: /server/path/placeholder/miniconda3/envs/part/bin/python
+      python: /NAS/qzqd5/miniconda3/envs/part/bin/python
       default_mask_scale: "1.0"
+      blender: /NAS/qzqd5/tmp/blender-4.5.1-linux-x64/blender
     holopart:
       repo: third_party/HoloPart
       env: holopart
-      python: /server/path/placeholder/miniconda3/envs/holopart/bin/python
+      python: /NAS/qzqd5/miniconda3/envs/holopart/bin/python
       hf_endpoint: https://hf-mirror.com
       weights_dir: pretrained_weights/HoloPart
       seed: 42

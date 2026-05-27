@@ -162,6 +162,8 @@ class Sampart3DRunner:
         self._symlink_library(self._find_torch_library(profile, "libcudart"), cuda_dir / "libcudart.so")
         self._symlink_library(self._find_torch_library(profile, "libnvrtc"), cuda_dir / "libnvrtc.so")
         ld_parts = [str(cuda_dir), str(torch_lib)]
+        for extra_lib in self._extra_lib_dirs(profile):
+            ld_parts.append(str(extra_lib))
         existing = os.environ.get("LD_LIBRARY_PATH")
         if existing:
             ld_parts.append(existing)
@@ -201,6 +203,19 @@ class Sampart3DRunner:
         if not candidates:
             raise FileNotFoundError(f"{prefix} source library missing in: {torch_lib}")
         return candidates[0]
+
+    def _extra_lib_dirs(self, profile: RuntimeProfile) -> list[Path]:
+        """Collect additional shared-library directories (e.g. libcuml)."""
+        env_root = profile.sampart3d.python.parent.parent
+        site_packages = env_root / "lib"
+        dirs: list[Path] = []
+        for candidate in sorted(site_packages.glob("python*/site-packages/libcuml/lib64")):
+            if candidate.is_dir():
+                dirs.append(candidate)
+        for candidate in sorted(site_packages.glob("python*/site-packages/libcuml_cu12.libs")):
+            if candidate.is_dir():
+                dirs.append(candidate)
+        return dirs
 
     def _symlink_library(self, source: Path, link: Path) -> None:
         if link.exists() or link.is_symlink():
