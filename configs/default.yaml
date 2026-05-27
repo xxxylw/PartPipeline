@@ -14,8 +14,8 @@ pipeline:
     min_area_ratio: 0.001
     validate_holopart_prepare_data: false
   animation:
-    blender: /home/rui/miniconda3/envs/part/bin/blender
-    ffmpeg: /home/rui/miniconda3/envs/part/bin/ffmpeg
+    blender: /NAS/qzqd5/tmp/blender-4.5.1-linux-x64/blender
+    ffmpeg: ffmpeg
     default_duration_seconds: 5.0
     fps: 24
     width: 1280
@@ -24,34 +24,9 @@ pipeline:
     rotation_degrees: 8.0
 
 profiles:
-  local_wsl:
-    project_root: /home/rui/of_work/code/PartPipeline
-    output_root: outputs/runs
-    sampart3d:
-      repo: third_party/SAMPart3D
-      env: part
-      python: /home/rui/miniconda3/envs/part/bin/python
-      default_mask_scale: "1.0"
-    holopart:
-      repo: third_party/HoloPart
-      env: holopart
-      python: /home/rui/miniconda3/envs/holopart/bin/python
-      hf_endpoint: https://hf-mirror.com
-      weights_dir: pretrained_weights/HoloPart
-      seed: 42
-      num_inference_steps: 50
-      guidance_scale: 3.5
-      batch_size: 8
-
   server:
     project_root: /NAS/qzqd5/workspace/PloysGen-AddPartPipeline/PartPipeline
     output_root: /NAS/qzqd5/trellis-demo-dev/partpipeline-runs
-    filesystem_paths_are_placeholders: false
-    ssh:
-      host_alias: d5
-      hostname: 10.1.6.8
-      user: qzqd5
-      port: 19091
     sampart3d:
       repo: third_party/SAMPart3D
       env: part
