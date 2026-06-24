@@ -25,18 +25,17 @@ pipeline:
 
 profiles:
   server:
-    project_root: /NAS/qzqd5/workspace/PloysGen-AddPartPipeline/PartPipeline
-    output_root: /NAS/qzqd5/trellis-demo-dev/partpipeline-runs
+    project_root: /mnt/disk2/qzqd5/workspace/PloysGen/PartPipeline
+    output_root: /mnt/disk2/qzqd5/workspace/PloysGen/PartPipeline/outputs/server-runs
     sampart3d:
       repo: third_party/SAMPart3D
       env: part
-      python: /NAS/qzqd5/miniconda3/envs/part/bin/python
+      python: /mnt/disk2/qzqd5/apps/miniconda3/envs/part/bin/python
       default_mask_scale: "1.0"
-      blender: /NAS/qzqd5/tmp/blender-4.5.1-linux-x64/blender
     holopart:
       repo: third_party/HoloPart
       env: holopart
-      python: /NAS/qzqd5/miniconda3/envs/holopart/bin/python
+      python: /mnt/disk2/qzqd5/apps/miniconda3/envs/holopart/bin/python
       hf_endpoint: https://hf-mirror.com
       weights_dir: pretrained_weights/HoloPart
       seed: 42
